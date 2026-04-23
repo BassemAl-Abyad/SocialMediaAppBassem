@@ -6,33 +6,40 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.bootstrap = void 0;
 const express_1 = __importDefault(require("express"));
 const helmet_1 = __importDefault(require("helmet"));
-const cors_1 = __importDefault(require("cors"));
-const express_rate_limit_1 = __importDefault(require("express-rate-limit"));
-// rate limiter
-const limiter = (0, express_rate_limit_1.default)({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 20, // limit each IP to 20 requests per windowMs
-    message: {
-        statusCode: 429,
-        message: "Too many requests, please try again later."
-    }
-});
+const cors_utils_1 = require("./Utils/cors/cors.utils");
+const rateLimiter_1 = require("./Utils/rateLimiter/rateLimiter");
+const Modules_1 = require("./Modules");
+const error_response_1 = require("./Utils/response/error.response");
+const config_service_1 = require("./config/config.service");
 const bootstrap = async () => {
     const app = (0, express_1.default)();
-    const PORT = 3000;
-    app.use(express_1.default.json(), (0, cors_1.default)(), (0, helmet_1.default)(), limiter);
+    // Apply security middleware
+    app.use((0, helmet_1.default)());
+    app.use(cors_utils_1.corsMiddleware);
+    app.use(rateLimiter_1.generalLimiter);
+    // Body parsing middleware
+    app.use(express_1.default.json());
+    app.use(express_1.default.urlencoded({ extended: true }));
+    // Global Errors Handling
+    app.use(error_response_1.globalErrorHandler);
+    // Main route
     app.get("/", (req, res, next) => {
         return res
             .status(200)
             .json({ message: "Welcome to Social Media App by Bassem." });
     });
+    // All routes
+    app.use(`/api/auth`, Modules_1.AuthRouter);
+    app.use(`/api/users`, Modules_1.UserRouter);
+    app.use(`/api/posts`, Modules_1.PostRouter);
+    app.use(`/api/comments`, Modules_1.CommentRouter);
+    // Not found route
     app.use("{/*dummy}", (req, res) => {
-        return res
-            .status(404)
-            .json({ message: "Handler not found!" });
+        throw new error_response_1.NotFoundException("Handler not found!");
     });
-    app.listen(PORT, () => {
-        console.log(`Server is running on http://localhost:${PORT}`);
+    // App listen
+    app.listen(config_service_1.PORT, () => {
+        console.log(`Server is running on http://localhost:${config_service_1.PORT}`);
     });
 };
 exports.bootstrap = bootstrap;

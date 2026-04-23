@@ -1,21 +1,13 @@
 import cors from 'cors';
+import { WHITE_LIST } from '../../config/config.service';
 
 export const corsOptions: cors.CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    // Define allowed origins
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'http://localhost:5173', // Vite default
-      'http://localhost:8080',
-      // Add your production domains here
-      // 'https://yourdomain.com'
-    ];
-    
-    if (allowedOrigins.includes(origin)) {
+    // Use environment-based whitelist
+    if (WHITE_LIST.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));

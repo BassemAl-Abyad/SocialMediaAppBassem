@@ -1,7 +1,9 @@
 import path from "path";
 import dotenv from "dotenv";
 
-dotenv.config({ path: path.resolve("./src/config/.env.dev")});
+const env = process.env.NODE_ENV || "dev";
+const envFile = `.env.${env}`;
+dotenv.config({ path: path.resolve(`./src/config/${envFile}`)});
 
 function getEnv(key:string): string {
     const value  = process.env[key];

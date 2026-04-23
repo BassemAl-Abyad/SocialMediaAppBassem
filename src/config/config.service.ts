@@ -42,5 +42,16 @@ export const USER_PASSWORD = getEnv("USER_PASSWORD");
 // White List
 export const WHITE_LIST = getEnv("WHITE_LIST").split(",");
 
+// Rate Limiter
+export const GENERAL_LIMITER_WINDOW_MS = parseInt(getEnv("GENERAL_LIMITER_WINDOW_MS"));
+export const GENERAL_LIMITER_MAX_REQUESTS = parseInt(getEnv("GENERAL_LIMITER_MAX_REQUESTS"));
+export const STRICT_LIMITER_WINDOW_MS = parseInt(getEnv("STRICT_LIMITER_WINDOW_MS"));
+export const STRICT_LIMITER_MAX_REQUESTS = parseInt(getEnv("STRICT_LIMITER_MAX_REQUESTS"));
+export const API_LIMITER_WINDOW_MS = parseInt(getEnv("API_LIMITER_WINDOW_MS"));
+export const API_LIMITER_MAX_REQUESTS = parseInt(getEnv("API_LIMITER_MAX_REQUESTS"));
+
+// Blocked IPs
+export const BLOCKED_IPS = getEnv("BLOCKED_IPS") === "" ? [] : getEnv("BLOCKED_IPS").split(",").map(ip => ip.trim());
+
 
 

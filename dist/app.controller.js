@@ -20,8 +20,6 @@ const bootstrap = async () => {
     // Body parsing middleware
     app.use(express_1.default.json());
     app.use(express_1.default.urlencoded({ extended: true }));
-    // Global Errors Handling
-    app.use(error_response_1.globalErrorHandler);
     // Main route
     app.get("/", (req, res, next) => {
         return res
@@ -37,6 +35,8 @@ const bootstrap = async () => {
     app.use("{/*dummy}", (req, res) => {
         throw new error_response_1.NotFoundException("Handler not found!");
     });
+    // Global Errors Handling
+    app.use(error_response_1.globalErrorHandler);
     // App listen
     app.listen(config_service_1.PORT, () => {
         console.log(`Server is running on http://localhost:${config_service_1.PORT}`);

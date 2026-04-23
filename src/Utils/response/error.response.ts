@@ -52,6 +52,7 @@ export const globalErrorHandler = (err: IError, req: Request, res: Response, nex
     res.status(err.statusCode).json({
         success: false,
         message: err.message || "Something went wrong!",
-        stack: err.stack
+        stack: err.stack,
+        cause: err.cause,
     });
 };

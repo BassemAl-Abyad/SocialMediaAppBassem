@@ -19,9 +19,6 @@ export const bootstrap = async () => {
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
-  // Global Errors Handling
-  app.use(globalErrorHandler);
-
   // Main route
   app.get("/", (req: Request, res: Response, next: NextFunction): Response => {
     return res
@@ -39,6 +36,9 @@ export const bootstrap = async () => {
   app.use("{/*dummy}", (req: Request, res: Response): Response => {
     throw new NotFoundException("Handler not found!");
   });
+
+  // Global Errors Handling
+  app.use(globalErrorHandler);
 
   // App listen
   app.listen(PORT, (): void => {

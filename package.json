@@ -13,6 +13,7 @@
   "description": "",
   "main": "index.js",
   "devDependencies": {
+    "@express-rate-limit/tsconfig": "^1.0.2",
     "@types/cors": "^2.8.19",
     "@types/dotenv": "^6.1.1",
     "@types/express": "5.0.6",

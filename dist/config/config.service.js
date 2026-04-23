@@ -8,10 +8,10 @@ const path_1 = __importDefault(require("path"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const env = process.env.NODE_ENV || "dev";
 const envFile = `.env.${env}`;
-dotenv_1.default.config({ path: path_1.default.resolve(`./src/config/${envFile}`) });
+dotenv_1.default.config({ path: path_1.default.resolve(process.cwd(), `src/config/${envFile}`) });
 function getEnv(key) {
     const value = process.env[key];
-    if (!value) {
+    if (value === undefined) {
         throw new Error(`Environment variable ${key} is not defined.`);
     }
     return value;

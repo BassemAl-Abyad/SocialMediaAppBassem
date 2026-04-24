@@ -49,4 +49,5 @@ exports.generalFields = {
         error: "Gender is required Male or Female.",
     })
         .optional(),
+    otp: zod_1.default.string().regex(/^\d{6}$/),
 };

@@ -42,6 +42,7 @@ const authValidation = __importStar(require("./auth.validation"));
 const validation_middleware_1 = require("../../Middleware/validation.middleware");
 const router = (0, express_1.Router)();
 router.post("/signup", (0, validation_middleware_1.validation)(authValidation.signupSchema), auth_service_1.default.signup);
+router.patch("/confirm-email", (0, validation_middleware_1.validation)(authValidation.confirmEmailSchema), auth_service_1.default.confirmEmail);
 // router.post("/login", authService.login);
 // router.post("/logout", authService.logout);
 exports.default = router;

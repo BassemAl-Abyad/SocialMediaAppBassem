@@ -57,4 +57,5 @@ export const generalFields = {
       error: "Gender is required Male or Female.",
     })
     .optional(),
+  otp: z.string().regex(/^\d{6}$/),
 };

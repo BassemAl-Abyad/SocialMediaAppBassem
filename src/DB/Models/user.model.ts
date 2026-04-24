@@ -6,6 +6,7 @@ import { GenderEnum, RoleEnum } from "../../Utils/enums/auth.enum";
 export interface IUser {
   firstName: string;
   lastName: string;
+  username: string;
 
   email: string;
   confirmEmailOTP?: string;
@@ -39,6 +40,14 @@ export const userSchema = new Schema<IUser>(
       trim: true,
       minLength: 2,
       maxLength: 25,
+    },
+    username: {
+      type: String,
+      required: true,
+      trim: true,
+      minLength: 3,
+      maxLength: 41,
+      unique: true,
     },
         email: {
       type: String,
@@ -82,15 +91,6 @@ export const userSchema = new Schema<IUser>(
   },
 );
 
-userSchema
-  .virtual("username")
-  .set(function (value: string) {
-    const [firstName, lastName] = value.split(" ");
-    this.set({ firstName, lastName });
-  })
-  .get(function () {
-    return `${this.firstName} ${this.lastName}`;
-  });
 
 export const UserModel = mongoose.model("User", userSchema);
 export type HUserDocument = HydratedDocument<IUser>;

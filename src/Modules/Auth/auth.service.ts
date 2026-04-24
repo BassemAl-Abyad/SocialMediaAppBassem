@@ -1,25 +1,28 @@
 import { Request, Response } from "express";
 import { signupDTO } from "./auth.dto";
-import { signupSchema } from "./auth.validation";
-import { BadRequestException } from "../../Utils/response/error.response";
-import { HUserDocument, UserModel } from "../../DB/Models/user.model";
+import { IUser, UserModel } from "../../DB/Models/user.model";
+import { UserRepository } from "../../DB/repositories/user.repo";
+import { ConflictException } from "../../Utils/response/error.response";
 
 class AuthenticationService {
+  private _userModel = new UserRepository(UserModel);
   constructor() {}
 
-  signUp = async (req: Request, res: Response): Promise<Response> => {
-    // DTO types
+  signup = async (req: Request, res: Response): Promise<Response> => {
     const { username, email, password }: signupDTO = req.body;
-    const user: HUserDocument = await new UserModel({});
-    user.save();
-    
-    return res.status(200).json({ message: "Signed up successfully." });
-  };
-  login = (req: Request, res: Response): Response => {
-    return res.status(200).json({ message: "Login" });
-  };
-  logout = (req: Request, res: Response): Response => {
-    return res.status(200).json({ message: "Logout" });
+
+    const checkUser = await this._userModel.findOne({
+      filter: { email },
+      select: "email",
+    });
+
+    if (checkUser) throw new ConflictException("User already exists.");
+    const [firstName, lastName] = username.split(" ");
+    const user = await this._userModel.create({
+      data: [{ firstName, lastName, email, password }],
+    });
+
+    return res.status(201).json({ message: "User created successfully.", data: { user } });
   };
 }
 

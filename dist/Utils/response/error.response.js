@@ -48,7 +48,8 @@ class InternalServerErrorException extends ApplicationErrors {
 exports.InternalServerErrorException = InternalServerErrorException;
 const globalErrorHandler = (err, req, res, next) => {
     console.error(err);
-    res.status(err.statusCode).json({
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
         success: false,
         message: err.message || "Something went wrong!",
         stack: err.stack,

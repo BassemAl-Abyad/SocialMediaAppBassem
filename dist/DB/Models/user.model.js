@@ -85,13 +85,6 @@ exports.userSchema = new mongoose_1.Schema({
         enum: Object.values(auth_enum_1.RoleEnum),
         default: auth_enum_1.RoleEnum.USER,
     },
-    createdAt: {
-        type: Date,
-        required: true,
-    },
-    updatedAt: {
-        type: Date,
-    },
 }, {
     timestamps: true,
     toJSON: { virtuals: true },

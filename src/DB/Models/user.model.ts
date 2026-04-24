@@ -20,7 +20,7 @@ export interface IUser {
   gender: GenderEnum;
   role?: RoleEnum;
 
-  createdAt: Date;
+  createdAt?: Date;
   updatedAt?: Date;
 }
 
@@ -73,13 +73,6 @@ export const userSchema = new Schema<IUser>(
       type: String,
       enum: Object.values(RoleEnum),
       default: RoleEnum.USER,
-    },
-    createdAt: {
-      type: Date,
-      required: true,
-    },
-    updatedAt: {
-      type: Date,
     },
   },
   {

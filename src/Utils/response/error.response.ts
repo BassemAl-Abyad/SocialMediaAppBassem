@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 
 export interface IError extends Error {
-    statusCode: number;
+    statusCode?: number;
 }
 
 export class ApplicationErrors extends Error {
@@ -49,7 +49,8 @@ export class InternalServerErrorException extends ApplicationErrors {
 
 export const globalErrorHandler = (err: IError, req: Request, res: Response, next: NextFunction) => {
     console.error(err);
-    res.status(err.statusCode).json({
+    const statusCode = err.statusCode || 500;
+    res.status(statusCode).json({
         success: false,
         message: err.message || "Something went wrong!",
         stack: err.stack,

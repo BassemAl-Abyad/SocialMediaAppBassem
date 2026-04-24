@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { HydratedDocument, Schema } from "mongoose";
 import { GenderEnum, RoleEnum } from "../../Utils/enums/auth.enum";
 
 // Interface
@@ -6,7 +6,6 @@ import { GenderEnum, RoleEnum } from "../../Utils/enums/auth.enum";
 export interface IUser {
   firstName: string;
   lastName: string;
-  username?: string;
 
   email: string;
   confirmEmailOTP?: string;
@@ -41,10 +40,7 @@ export const userSchema = new Schema<IUser>(
       minLength: 2,
       maxLength: 25,
     },
-    username: {
-      type: String,
-    },
-    email: {
+        email: {
       type: String,
       required: true,
       unique: true,
@@ -104,3 +100,4 @@ userSchema
   });
 
 export const UserModel = mongoose.model("User", userSchema);
+export type HUserDocument = HydratedDocument<IUser>;

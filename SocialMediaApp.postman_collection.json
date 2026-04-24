@@ -14,6 +14,14 @@
         "header": []
       },
       "response": []
+    },
+    {
+      "name": "ConfirmEmail",
+      "request": {
+        "method": "GET",
+        "header": []
+      },
+      "response": []
     }
   ]
 }

@@ -20,7 +20,7 @@ export const REDIS_URI = getEnv("REDIS_URI");
 
 // Encryption
 export const SALT = getEnv("SALT");
-export const ENCRYPTION_SECRET_KEY = getEnv("ENCRYPTION_SECRET_KEY");
+export const ENCRYPTION_SECRET = getEnv("ENCRYPTION_SECRET_KEY");
 
 // Tokens
 export const TOKEN_ACCESS_USER_SECRET_KEY = getEnv("TOKEN_ACCESS_USER_SECRET_KEY");

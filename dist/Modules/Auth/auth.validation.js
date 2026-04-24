@@ -15,6 +15,7 @@ exports.signupSchema = {
         username: validation_middleware_1.generalFields.username,
         confirmPassword: validation_middleware_1.generalFields.confirmPassword,
         gender: validation_middleware_1.generalFields.gender.optional(),
+        phone: zod_1.z.string(),
     })
         .superRefine((data, ctx) => {
         if (data.password !== data.confirmPassword) {

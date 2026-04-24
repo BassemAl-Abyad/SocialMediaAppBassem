@@ -14,6 +14,7 @@ export const signupSchema = {
       username: generalFields.username,
       confirmPassword: generalFields.confirmPassword,
       gender: generalFields.gender.optional(),
+      phone: z.string(),
     })
     .superRefine((data, ctx) => {
       if (data.password !== data.confirmPassword) {

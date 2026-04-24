@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.BLOCKED_IPS = exports.API_LIMITER_MAX_REQUESTS = exports.API_LIMITER_WINDOW_MS = exports.STRICT_LIMITER_MAX_REQUESTS = exports.STRICT_LIMITER_WINDOW_MS = exports.GENERAL_LIMITER_MAX_REQUESTS = exports.GENERAL_LIMITER_WINDOW_MS = exports.WHITE_LIST = exports.USER_PASSWORD = exports.USER_EMAIL = exports.CLIENT_ID = exports.REFRESH_EXPIRES = exports.ACCESS_EXPIRES = exports.TOKEN_REFRESH_ADMIN_SECRET_KEY = exports.TOKEN_ACCESS_ADMIN_SECRET_KEY = exports.TOKEN_REFRESH_USER_SECRET_KEY = exports.TOKEN_ACCESS_USER_SECRET_KEY = exports.ENCRYPTION_SECRET_KEY = exports.SALT = exports.REDIS_URI = exports.DB_URI = exports.PORT = void 0;
+exports.BLOCKED_IPS = exports.API_LIMITER_MAX_REQUESTS = exports.API_LIMITER_WINDOW_MS = exports.STRICT_LIMITER_MAX_REQUESTS = exports.STRICT_LIMITER_WINDOW_MS = exports.GENERAL_LIMITER_MAX_REQUESTS = exports.GENERAL_LIMITER_WINDOW_MS = exports.WHITE_LIST = exports.USER_PASSWORD = exports.USER_EMAIL = exports.CLIENT_ID = exports.REFRESH_EXPIRES = exports.ACCESS_EXPIRES = exports.TOKEN_REFRESH_ADMIN_SECRET_KEY = exports.TOKEN_ACCESS_ADMIN_SECRET_KEY = exports.TOKEN_REFRESH_USER_SECRET_KEY = exports.TOKEN_ACCESS_USER_SECRET_KEY = exports.ENCRYPTION_SECRET = exports.SALT = exports.REDIS_URI = exports.DB_URI = exports.PORT = void 0;
 const path_1 = __importDefault(require("path"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const env = process.env.NODE_ENV || "dev";
@@ -22,7 +22,7 @@ exports.DB_URI = getEnv("DB_URI");
 exports.REDIS_URI = getEnv("REDIS_URI");
 // Encryption
 exports.SALT = getEnv("SALT");
-exports.ENCRYPTION_SECRET_KEY = getEnv("ENCRYPTION_SECRET_KEY");
+exports.ENCRYPTION_SECRET = getEnv("ENCRYPTION_SECRET_KEY");
 // Tokens
 exports.TOKEN_ACCESS_USER_SECRET_KEY = getEnv("TOKEN_ACCESS_USER_SECRET_KEY");
 exports.TOKEN_REFRESH_USER_SECRET_KEY = getEnv("TOKEN_REFRESH_USER_SECRET_KEY");

@@ -11,6 +11,7 @@ const rateLimiter_1 = require("./Utils/rateLimiter/rateLimiter");
 const Modules_1 = require("./Modules");
 const error_response_1 = require("./Utils/response/error.response");
 const config_service_1 = require("./config/config.service");
+const connection_1 = __importDefault(require("./DB/connection"));
 const bootstrap = async () => {
     const app = (0, express_1.default)();
     // Apply security middleware
@@ -20,6 +21,8 @@ const bootstrap = async () => {
     // Body parsing middleware
     app.use(express_1.default.json());
     app.use(express_1.default.urlencoded({ extended: true }));
+    // DB connection
+    await (0, connection_1.default)();
     // Main route
     app.get("/", (req, res, next) => {
         return res

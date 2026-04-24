@@ -6,6 +6,7 @@ import { generalLimiter } from "./Utils/rateLimiter/rateLimiter";
 import { AuthRouter, CommentRouter, PostRouter, UserRouter } from "./Modules";
 import { globalErrorHandler, NotFoundException } from "./Utils/response/error.response";
 import { PORT } from "./config/config.service";
+import connectDB from "./DB/connection";
 
 export const bootstrap = async () => {
   const app: Express = express();
@@ -18,6 +19,9 @@ export const bootstrap = async () => {
   // Body parsing middleware
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // DB connection
+  await connectDB();
 
   // Main route
   app.get("/", (req: Request, res: Response, next: NextFunction): Response => {

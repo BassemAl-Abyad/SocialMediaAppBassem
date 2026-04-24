@@ -2,25 +2,19 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.signupSchema = exports.loginSchema = void 0;
 const zod_1 = require("zod");
+const validation_middleware_1 = require("../../Middleware/validation.middleware");
 exports.loginSchema = {
     body: zod_1.z.strictObject({
-        email: zod_1.z.email({ error: "Email is required." }),
-        password: zod_1.z.string({ error: "Password is required." }),
+        email: validation_middleware_1.generalFields.email,
+        password: validation_middleware_1.generalFields.password,
     }),
 };
 exports.signupSchema = {
     body: exports.loginSchema.body
         .extend({
-        username: zod_1.z
-            .string({ error: "Username is required." })
-            .min(3, { error: "Username must be atleast 3 characters long." })
-            .max(20, { error: "Username must be atmost 20 characters long." }),
-        confirmPassword: zod_1.z.string({ error: "Confirm password is required." }),
-        gender: zod_1.z
-            .enum(["Male", "Female"], {
-            error: "Gender is required Male or Female.",
-        })
-            .optional(),
+        username: validation_middleware_1.generalFields.username,
+        confirmPassword: validation_middleware_1.generalFields.confirmPassword,
+        gender: validation_middleware_1.generalFields.gender.optional(),
     })
         .superRefine((data, ctx) => {
         if (data.password !== data.confirmPassword) {

@@ -1,25 +1,19 @@
 import { z } from "zod";
+import { generalFields } from "../../Middleware/validation.middleware";
 
 export const loginSchema = {
   body: z.strictObject({
-    email: z.email({ error: "Email is required." }),
-    password: z.string({ error: "Password is required." }),
+    email: generalFields.email,
+    password: generalFields.password,
   }),
 };
 
 export const signupSchema = {
   body: loginSchema.body
     .extend({
-      username: z
-        .string({ error: "Username is required." })
-        .min(3, { error: "Username must be atleast 3 characters long." })
-        .max(20, { error: "Username must be atmost 20 characters long." }),
-      confirmPassword: z.string({ error: "Confirm password is required." }),
-      gender: z
-        .enum(["Male", "Female"], {
-          error: "Gender is required Male or Female.",
-        })
-        .optional(),
+      username: generalFields.username,
+      confirmPassword: generalFields.confirmPassword,
+      gender: generalFields.gender.optional(),
     })
     .superRefine((data, ctx) => {
       if (data.password !== data.confirmPassword) {

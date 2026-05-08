@@ -12,6 +12,7 @@ const Modules_1 = require("./Modules");
 const error_response_1 = require("./Utils/response/error.response");
 const config_service_1 = require("./config/config.service");
 const connection_1 = __importDefault(require("./DB/connection"));
+const redis_connection_1 = require("./DB/repositories/redis.connection");
 const bootstrap = async () => {
     const app = (0, express_1.default)();
     // Apply security middleware
@@ -23,6 +24,7 @@ const bootstrap = async () => {
     app.use(express_1.default.urlencoded({ extended: true }));
     // DB connection
     await (0, connection_1.default)();
+    await (0, redis_connection_1.redisConnection)();
     // Main route
     app.get("/", (req, res, next) => {
         return res

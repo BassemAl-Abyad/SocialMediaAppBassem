@@ -20,6 +20,7 @@ export interface IUser {
 
   gender: GenderEnum;
   role?: RoleEnum;
+  changeCredentialTime: Date;
 
   createdAt?: Date;
   updatedAt?: Date;
@@ -49,7 +50,7 @@ export const userSchema = new Schema<IUser>(
       maxLength: 41,
       unique: true,
     },
-        email: {
+    email: {
       type: String,
       required: true,
       unique: true,
@@ -73,6 +74,7 @@ export const userSchema = new Schema<IUser>(
     address: {
       type: String,
     },
+    changeCredentialTime: { type: Date },
     gender: {
       type: String,
       enum: Object.values(GenderEnum),
@@ -90,7 +92,6 @@ export const userSchema = new Schema<IUser>(
     toObject: { virtuals: true },
   },
 );
-
 
 export const UserModel = mongoose.model("User", userSchema);
 export type HUserDocument = HydratedDocument<IUser>;

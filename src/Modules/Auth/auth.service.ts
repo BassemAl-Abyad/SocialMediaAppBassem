@@ -20,10 +20,13 @@ import { encrypt } from "../../Utils/security/encryption";
 import { generateOTP } from "../../Utils/generateOTP";
 import { emailEvents } from "../../Utils/events/email.events";
 import { TokenService } from "../../Utils/services/token";
+import { LogoutTypeEnum } from "../../Utils/enums/auth.enum";
+import { revokeTokenKey, set } from "../../DB/repositories/redis.service";
+import { ACCESS_EXPIRES } from "../../config/config.service";
 
 class AuthenticationService {
   private _userRepo = new UserRepository(UserModel);
-  private _tokenService:TokenService;
+  private _tokenService: TokenService;
   constructor() {
     this._tokenService = new TokenService();
   }
@@ -63,22 +66,51 @@ class AuthenticationService {
   };
 
   login = async (req: Request, res: Response): Promise<Response> => {
-  const { email, password }: loginDTO = req.body;
+    const { email, password }: loginDTO = req.body;
 
-  const user = await this._userRepo.findOne({
-    filter: { email, confirmEmail: { $exists: true } },
-  });
-  if (!user) throw new NotFoundException("User not found or already confirmed.");
+    const user = await this._userRepo.findOne({
+      filter: { email, confirmEmail: { $exists: true } },
+    });
+    if (!user)
+      throw new NotFoundException("User not found or already confirmed.");
 
-  if (!(await compareHash(password, user.password)))
-    throw new BadRequestException("Invalid email or password.");
+    if (!(await compareHash(password, user.password)))
+      throw new BadRequestException("Invalid email or password.");
 
-  const credentials = await this._tokenService.getNewLoginCredentials(user as any);
+    const credentials = await this._tokenService.getNewLoginCredentials(
+      user as any,
+    );
 
-  return res
-    .status(201)
-    .json({ message: "User logged in successfully.", data: { credentials } });
-};
+    return res
+      .status(201)
+      .json({ message: "User logged in successfully.", data: { credentials } });
+  };
+
+  logoutWithRedis = async (req: Request, res: Response): Promise<Response> => {
+    const { flag } = req.body;
+
+    let status = 200;
+    switch (flag) {
+      case LogoutTypeEnum.LOGOUT:
+        await set({
+          key: revokeTokenKey({ userId: req.decoded.id, jti: req.decoded.jti }),
+          value: req.decoded.jti,
+          ttl: Number(ACCESS_EXPIRES), // 3600
+        });
+        status = 201;
+        break;
+      case LogoutTypeEnum.LOGOUT_FROM_ALL:
+        await this._userRepo.updateOne({
+          filter: { _id: req.decoded.id },
+          update: {
+            changeCredentialTime: Date.now(),
+          },
+        });
+        status = 200;
+        break;
+    }
+    return res.status(status).json({ message: "Logout successful." });
+  };
 
   confirmEmail = async (req: Request, res: Response): Promise<Response> => {
     const { email, otp }: confirmEmailDTO = req.body;

@@ -1,12 +1,18 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyAccountSchema = exports.resendOTPSchema = exports.resetPasswordConfirmSchema = exports.resetPasswordSchema = exports.signupSchema = exports.confirmEmailSchema = exports.loginSchema = void 0;
+exports.verifyAccountSchema = exports.resendOTPSchema = exports.resetPasswordConfirmSchema = exports.resetPasswordSchema = exports.signupSchema = exports.confirmEmailSchema = exports.logoutSchema = exports.loginSchema = void 0;
 const zod_1 = require("zod");
 const validation_middleware_1 = require("../../Middleware/validation.middleware");
+const auth_enum_1 = require("../../Utils/enums/auth.enum");
 exports.loginSchema = {
     body: zod_1.z.strictObject({
         email: validation_middleware_1.generalFields.email,
         password: validation_middleware_1.generalFields.password,
+    }),
+};
+exports.logoutSchema = {
+    body: zod_1.z.strictObject({
+        flag: zod_1.z.enum(auth_enum_1.LogoutTypeEnum),
     }),
 };
 exports.confirmEmailSchema = {

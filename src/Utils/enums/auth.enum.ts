@@ -17,3 +17,8 @@ export enum TokenTypeEnum {
     ACCESS = "ACCESS",
     REFRESH = "REFRESH"
 }
+
+export enum LogoutTypeEnum {
+    LOGOUT = "LOGOUT",
+    LOGOUT_FROM_ALL = "LOGOUT_FROM_ALL"
+}

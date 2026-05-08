@@ -9,9 +9,14 @@ import {
   TOKEN_REFRESH_USER_SECRET_KEY,
 } from "../../config/config.service";
 import { v4 as uuid } from "uuid";
-import { BadRequestException, NotFoundException } from "../response/error.response";
+import {
+  BadRequestException,
+  NotFoundException,
+  UnauthorizedException,
+} from "../response/error.response";
 import { UserRepository } from "../../DB/repositories/user.repo";
 import { HUserDocument, UserModel } from "../../DB/Models/user.model";
+import { get, revokeTokenKey } from "../../DB/repositories/redis.service";
 
 export interface CustomJwtPayLoad extends JwtPayload {
   id: string;
@@ -84,7 +89,7 @@ export class TokenService {
   }: {
     authorization: string;
     tokenType?: TokenTypeEnum;
-  }): Promise<{user: HUserDocument; decoded: CustomJwtPayLoad}> => {
+  }): Promise<{ user: HUserDocument; decoded: CustomJwtPayLoad }> => {
     if (!authorization)
       throw new BadRequestException("Authorization Header is missing");
 
@@ -103,6 +108,11 @@ export class TokenService {
         : signature.refereshSignature;
 
     const decoded = await this.verify(token, secret);
+
+    const isRevoked = await get({
+      key: revokeTokenKey({ userId: decoded.id, jti: decoded.jti }),
+    });
+    if (isRevoked) throw new UnauthorizedException("Token is revoked.");
 
     const user = await this._userRepo.findById({ id: decoded.id });
     if (!user) throw new NotFoundException("User not registered.");

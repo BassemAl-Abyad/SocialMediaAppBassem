@@ -8,6 +8,9 @@ const encryption_1 = require("../../Utils/security/encryption");
 const generateOTP_1 = require("../../Utils/generateOTP");
 const email_events_1 = require("../../Utils/events/email.events");
 const token_1 = require("../../Utils/services/token");
+const auth_enum_1 = require("../../Utils/enums/auth.enum");
+const redis_service_1 = require("../../DB/repositories/redis.service");
+const config_service_1 = require("../../config/config.service");
 class AuthenticationService {
     _userRepo = new user_repo_1.UserRepository(user_model_1.UserModel);
     _tokenService;
@@ -55,6 +58,30 @@ class AuthenticationService {
         return res
             .status(201)
             .json({ message: "User logged in successfully.", data: { credentials } });
+    };
+    logoutWithRedis = async (req, res) => {
+        const { flag } = req.body;
+        let status = 200;
+        switch (flag) {
+            case auth_enum_1.LogoutTypeEnum.LOGOUT:
+                await (0, redis_service_1.set)({
+                    key: (0, redis_service_1.revokeTokenKey)({ userId: req.decoded.id, jti: req.decoded.jti }),
+                    value: req.decoded.jti,
+                    ttl: Number(config_service_1.ACCESS_EXPIRES), // 3600
+                });
+                status = 201;
+                break;
+            case auth_enum_1.LogoutTypeEnum.LOGOUT_FROM_ALL:
+                await this._userRepo.updateOne({
+                    filter: { _id: req.decoded.id },
+                    update: {
+                        changeCredentialTime: Date.now(),
+                    },
+                });
+                status = 200;
+                break;
+        }
+        return res.status(status).json({ message: "Logout successful." });
     };
     confirmEmail = async (req, res) => {
         const { email, otp } = req.body;

@@ -40,6 +40,8 @@ const express_1 = require("express");
 const auth_service_1 = __importDefault(require("./auth.service"));
 const authValidation = __importStar(require("./auth.validation"));
 const validation_middleware_1 = require("../../Middleware/validation.middleware");
+const authentication_middleware_1 = require("../../Middleware/authentication.middleware");
+const auth_enum_1 = require("../../Utils/enums/auth.enum");
 const router = (0, express_1.Router)();
 router.post("/signup", (0, validation_middleware_1.validation)(authValidation.signupSchema), auth_service_1.default.signup);
 router.post("/login", (0, validation_middleware_1.validation)(authValidation.loginSchema), auth_service_1.default.login);
@@ -48,5 +50,5 @@ router.post("/reset-password", (0, validation_middleware_1.validation)(authValid
 router.patch("/reset-password-confirm", (0, validation_middleware_1.validation)(authValidation.resetPasswordConfirmSchema), auth_service_1.default.resetPasswordConfirm);
 router.post("/resend-otp", (0, validation_middleware_1.validation)(authValidation.resendOTPSchema), auth_service_1.default.resendOTP);
 router.patch("/verify-account", (0, validation_middleware_1.validation)(authValidation.verifyAccountSchema), auth_service_1.default.verifyAccount);
-// router.post("/logout", authService.logout);
+router.patch("/logout", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, validation_middleware_1.validation)(authValidation.logoutSchema), auth_service_1.default.logoutWithRedis);
 exports.default = router;

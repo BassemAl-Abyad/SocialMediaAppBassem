@@ -83,6 +83,7 @@ exports.userSchema = new mongoose_1.Schema({
     address: {
         type: String,
     },
+    changeCredentialTime: { type: Date },
     gender: {
         type: String,
         enum: Object.values(auth_enum_1.GenderEnum),

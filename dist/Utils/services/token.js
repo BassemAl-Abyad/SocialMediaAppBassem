@@ -11,6 +11,7 @@ const uuid_1 = require("uuid");
 const error_response_1 = require("../response/error.response");
 const user_repo_1 = require("../../DB/repositories/user.repo");
 const user_model_1 = require("../../DB/Models/user.model");
+const redis_service_1 = require("../../DB/repositories/redis.service");
 class TokenService {
     _userRepo = new user_repo_1.UserRepository(user_model_1.UserModel);
     constructor() { }
@@ -64,6 +65,11 @@ class TokenService {
             ? signature.accessSignature
             : signature.refereshSignature;
         const decoded = await this.verify(token, secret);
+        const isRevoked = await (0, redis_service_1.get)({
+            key: (0, redis_service_1.revokeTokenKey)({ userId: decoded.id, jti: decoded.jti }),
+        });
+        if (isRevoked)
+            throw new error_response_1.UnauthorizedException("Token is revoked.");
         const user = await this._userRepo.findById({ id: decoded.id });
         if (!user)
             throw new error_response_1.NotFoundException("User not registered.");

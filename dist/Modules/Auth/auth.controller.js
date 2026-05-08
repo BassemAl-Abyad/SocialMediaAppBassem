@@ -43,6 +43,10 @@ const validation_middleware_1 = require("../../Middleware/validation.middleware"
 const router = (0, express_1.Router)();
 router.post("/signup", (0, validation_middleware_1.validation)(authValidation.signupSchema), auth_service_1.default.signup);
 router.patch("/confirm-email", (0, validation_middleware_1.validation)(authValidation.confirmEmailSchema), auth_service_1.default.confirmEmail);
+router.post("/reset-password", (0, validation_middleware_1.validation)(authValidation.resetPasswordSchema), auth_service_1.default.resetPassword);
+router.patch("/reset-password-confirm", (0, validation_middleware_1.validation)(authValidation.resetPasswordConfirmSchema), auth_service_1.default.resetPasswordConfirm);
+router.post("/resend-otp", (0, validation_middleware_1.validation)(authValidation.resendOTPSchema), auth_service_1.default.resendOTP);
+router.patch("/verify-account", (0, validation_middleware_1.validation)(authValidation.verifyAccountSchema), auth_service_1.default.verifyAccount);
 // router.post("/login", authService.login);
 // router.post("/logout", authService.logout);
 exports.default = router;

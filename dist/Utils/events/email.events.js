@@ -20,3 +20,18 @@ exports.emailEvents.on("confirmEmail", async (data) => {
         console.log(`Fail to send Email`, error);
     }
 });
+exports.emailEvents.on("resetPasswordOTP", async (data) => {
+    try {
+        data.subject = "Reset Your Password";
+        if (!data.otp || !data.username) {
+            throw new Error("OTP and username are required");
+        }
+        const firstName = data.username.split(" ")[0];
+        const subject = data.subject ?? "Reset Your Password";
+        data.html = (0, generateHTML_1.template)(data.otp, firstName, subject);
+        await (0, send_email_1.sendEmail)(data);
+    }
+    catch (error) {
+        console.log(`Fail to send Email`, error);
+    }
+});

@@ -64,5 +64,107 @@ class AuthenticationService {
             .status(200)
             .json({ message: "User confirmed successfully." });
     };
+    resetPassword = async (req, res) => {
+        const { email } = req.body;
+        const user = await this._userModel.findOne({
+            filter: { email },
+            select: "username email",
+        });
+        if (!user)
+            throw new error_response_1.NotFoundException("User not found.");
+        const otp = (0, generateOTP_1.generateOTP)();
+        await this._userModel.updateOne({
+            filter: { email },
+            update: {
+                resetPasswordOTP: await (0, hash_1.generateHash)(otp),
+            },
+        });
+        await email_events_1.emailEvents.emit("resetPasswordOTP", {
+            to: email,
+            username: user.username,
+            otp
+        });
+        return res
+            .status(200)
+            .json({ message: "Reset password OTP sent successfully." });
+    };
+    resetPasswordConfirm = async (req, res) => {
+        const { email, otp, newPassword } = req.body;
+        const user = await this._userModel.findOne({
+            filter: {
+                email,
+                resetPasswordOTP: { $exists: true },
+            },
+        });
+        if (!user)
+            throw new error_response_1.NotFoundException("User not found or no reset request.");
+        if (!(await (0, hash_1.compareHash)(otp, user?.resetPasswordOTP)))
+            throw new error_response_1.NotFoundException("Invalid OTP.");
+        await this._userModel.updateOne({
+            filter: { email },
+            update: {
+                password: await (0, hash_1.generateHash)(newPassword),
+                $unset: {
+                    resetPasswordOTP: true,
+                },
+            },
+        });
+        return res
+            .status(200)
+            .json({ message: "Password reset successfully." });
+    };
+    resendOTP = async (req, res) => {
+        const { email } = req.body;
+        const user = await this._userModel.findOne({
+            filter: {
+                email,
+                confirmEmail: { $exists: false },
+            },
+            select: "username email",
+        });
+        if (!user)
+            throw new error_response_1.NotFoundException("User not found or already confirmed.");
+        const otp = (0, generateOTP_1.generateOTP)();
+        await this._userModel.updateOne({
+            filter: { email },
+            update: {
+                confirmEmailOTP: await (0, hash_1.generateHash)(otp),
+            },
+        });
+        await email_events_1.emailEvents.emit("confirmEmail", {
+            to: email,
+            username: user.username,
+            otp
+        });
+        return res
+            .status(200)
+            .json({ message: "OTP resent successfully." });
+    };
+    verifyAccount = async (req, res) => {
+        const { email, otp } = req.body;
+        const user = await this._userModel.findOne({
+            filter: {
+                email,
+                confirmEmailOTP: { $exists: true },
+                confirmEmail: { $exists: false },
+            },
+        });
+        if (!user)
+            throw new error_response_1.NotFoundException("User not found or already confirmed.");
+        if (!(await (0, hash_1.compareHash)(otp, user?.confirmEmailOTP)))
+            throw new error_response_1.NotFoundException("Invalid OTP.");
+        await this._userModel.updateOne({
+            filter: { email },
+            update: {
+                confirmEmail: new Date(),
+                $unset: {
+                    confirmEmailOTP: true,
+                },
+            },
+        });
+        return res
+            .status(200)
+            .json({ message: "Account verified successfully." });
+    };
 }
 exports.default = new AuthenticationService();

@@ -41,3 +41,30 @@ export const signupSchema = {
       }
     }),
 };
+
+export const resetPasswordSchema = {
+  body: z.strictObject({
+    email: generalFields.email,
+  }),
+};
+
+export const resetPasswordConfirmSchema = {
+  body: z.strictObject({
+    email: generalFields.email,
+    otp: generalFields.otp,
+    newPassword: generalFields.password,
+  }),
+};
+
+export const resendOTPSchema = {
+  body: z.strictObject({
+    email: generalFields.email,
+  }),
+};
+
+export const verifyAccountSchema = {
+  body: z.strictObject({
+    email: generalFields.email,
+    otp: generalFields.otp,
+  }),
+};

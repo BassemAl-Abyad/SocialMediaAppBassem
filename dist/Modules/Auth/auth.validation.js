@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.signupSchema = exports.confirmEmailSchema = exports.loginSchema = void 0;
+exports.verifyAccountSchema = exports.resendOTPSchema = exports.resetPasswordConfirmSchema = exports.resetPasswordSchema = exports.signupSchema = exports.confirmEmailSchema = exports.loginSchema = void 0;
 const zod_1 = require("zod");
 const validation_middleware_1 = require("../../Middleware/validation.middleware");
 exports.loginSchema = {
@@ -38,5 +38,28 @@ exports.signupSchema = {
                 message: "Username must contain exactly two words.",
             });
         }
+    }),
+};
+exports.resetPasswordSchema = {
+    body: zod_1.z.strictObject({
+        email: validation_middleware_1.generalFields.email,
+    }),
+};
+exports.resetPasswordConfirmSchema = {
+    body: zod_1.z.strictObject({
+        email: validation_middleware_1.generalFields.email,
+        otp: validation_middleware_1.generalFields.otp,
+        newPassword: validation_middleware_1.generalFields.password,
+    }),
+};
+exports.resendOTPSchema = {
+    body: zod_1.z.strictObject({
+        email: validation_middleware_1.generalFields.email,
+    }),
+};
+exports.verifyAccountSchema = {
+    body: zod_1.z.strictObject({
+        email: validation_middleware_1.generalFields.email,
+        otp: validation_middleware_1.generalFields.otp,
     }),
 };

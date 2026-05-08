@@ -1,15 +1,17 @@
 import { Request, Response } from "express";
-import { 
-  confirmEmailDTO, 
-  signupDTO, 
-  resetPasswordDTO, 
-  resetPasswordConfirmDTO, 
-  resendOTPDTO, 
-  verifyAccountDTO 
+import {
+  confirmEmailDTO,
+  signupDTO,
+  resetPasswordDTO,
+  resetPasswordConfirmDTO,
+  resendOTPDTO,
+  verifyAccountDTO,
+  loginDTO,
 } from "./auth.dto";
 import { IUser, UserModel } from "../../DB/Models/user.model";
 import { UserRepository } from "../../DB/repositories/user.repo";
 import {
+  BadRequestException,
   ConflictException,
   NotFoundException,
 } from "../../Utils/response/error.response";
@@ -17,15 +19,19 @@ import { compareHash, generateHash } from "../../Utils/security/hash";
 import { encrypt } from "../../Utils/security/encryption";
 import { generateOTP } from "../../Utils/generateOTP";
 import { emailEvents } from "../../Utils/events/email.events";
+import { TokenService } from "../../Utils/services/token";
 
 class AuthenticationService {
-  private _userModel = new UserRepository(UserModel);
-  constructor() {}
+  private _userRepo = new UserRepository(UserModel);
+  private _tokenService:TokenService;
+  constructor() {
+    this._tokenService = new TokenService();
+  }
 
   signup = async (req: Request, res: Response): Promise<Response> => {
     const { username, email, password, phone }: signupDTO = req.body;
 
-    const checkUser = await this._userModel.findOne({
+    const checkUser = await this._userRepo.findOne({
       filter: { email },
       select: "email",
     });
@@ -35,7 +41,7 @@ class AuthenticationService {
     const otp = generateOTP();
 
     const [firstName, lastName] = username.split(" ");
-    const user = await this._userModel.create({
+    const user = await this._userRepo.create({
       data: [
         {
           firstName,
@@ -56,10 +62,28 @@ class AuthenticationService {
       .json({ message: "User created successfully.", data: { user } });
   };
 
+  login = async (req: Request, res: Response): Promise<Response> => {
+  const { email, password }: loginDTO = req.body;
+
+  const user = await this._userRepo.findOne({
+    filter: { email, confirmEmail: { $exists: true } },
+  });
+  if (!user) throw new NotFoundException("User not found or already confirmed.");
+
+  if (!(await compareHash(password, user.password)))
+    throw new BadRequestException("Invalid email or password.");
+
+  const credentials = await this._tokenService.getNewLoginCredentials(user as any);
+
+  return res
+    .status(201)
+    .json({ message: "User logged in successfully.", data: { credentials } });
+};
+
   confirmEmail = async (req: Request, res: Response): Promise<Response> => {
     const { email, otp }: confirmEmailDTO = req.body;
 
-    const user = await this._userModel.findOne({
+    const user = await this._userRepo.findOne({
       filter: {
         email,
         confirmEmailOTP: { $exists: true },
@@ -73,7 +97,7 @@ class AuthenticationService {
     if (!(await compareHash(otp, user?.confirmEmailOTP as string)))
       throw new NotFoundException("Invalid OTP.");
 
-    await this._userModel.updateOne({
+    await this._userRepo.updateOne({
       filter: { email },
       update: {
         confirmEmail: new Date(),
@@ -83,15 +107,13 @@ class AuthenticationService {
       },
     });
 
-    return res
-      .status(200)
-      .json({ message: "User confirmed successfully." });
+    return res.status(200).json({ message: "User confirmed successfully." });
   };
 
   resetPassword = async (req: Request, res: Response): Promise<Response> => {
     const { email }: resetPasswordDTO = req.body;
 
-    const user = await this._userModel.findOne({
+    const user = await this._userRepo.findOne({
       filter: { email },
       select: "username email",
     });
@@ -100,17 +122,17 @@ class AuthenticationService {
 
     const otp = generateOTP();
 
-    await this._userModel.updateOne({
+    await this._userRepo.updateOne({
       filter: { email },
       update: {
         resetPasswordOTP: await generateHash(otp),
       },
     });
 
-    await emailEvents.emit("resetPasswordOTP", { 
-      to: email, 
-      username: user.username, 
-      otp 
+    await emailEvents.emit("resetPasswordOTP", {
+      to: email,
+      username: user.username,
+      otp,
     });
 
     return res
@@ -118,22 +140,26 @@ class AuthenticationService {
       .json({ message: "Reset password OTP sent successfully." });
   };
 
-  resetPasswordConfirm = async (req: Request, res: Response): Promise<Response> => {
+  resetPasswordConfirm = async (
+    req: Request,
+    res: Response,
+  ): Promise<Response> => {
     const { email, otp, newPassword }: resetPasswordConfirmDTO = req.body;
 
-    const user = await this._userModel.findOne({
+    const user = await this._userRepo.findOne({
       filter: {
         email,
         resetPasswordOTP: { $exists: true },
       },
     });
 
-    if (!user) throw new NotFoundException("User not found or no reset request.");
+    if (!user)
+      throw new NotFoundException("User not found or no reset request.");
 
     if (!(await compareHash(otp, user?.resetPasswordOTP as string)))
       throw new NotFoundException("Invalid OTP.");
 
-    await this._userModel.updateOne({
+    await this._userRepo.updateOne({
       filter: { email },
       update: {
         password: await generateHash(newPassword),
@@ -143,15 +169,13 @@ class AuthenticationService {
       },
     });
 
-    return res
-      .status(200)
-      .json({ message: "Password reset successfully." });
+    return res.status(200).json({ message: "Password reset successfully." });
   };
 
   resendOTP = async (req: Request, res: Response): Promise<Response> => {
     const { email }: resendOTPDTO = req.body;
 
-    const user = await this._userModel.findOne({
+    const user = await this._userRepo.findOne({
       filter: {
         email,
         confirmEmail: { $exists: false },
@@ -159,32 +183,31 @@ class AuthenticationService {
       select: "username email",
     });
 
-    if (!user) throw new NotFoundException("User not found or already confirmed.");
+    if (!user)
+      throw new NotFoundException("User not found or already confirmed.");
 
     const otp = generateOTP();
 
-    await this._userModel.updateOne({
+    await this._userRepo.updateOne({
       filter: { email },
       update: {
         confirmEmailOTP: await generateHash(otp),
       },
     });
 
-    await emailEvents.emit("confirmEmail", { 
-      to: email, 
-      username: user.username, 
-      otp 
+    await emailEvents.emit("confirmEmail", {
+      to: email,
+      username: user.username,
+      otp,
     });
 
-    return res
-      .status(200)
-      .json({ message: "OTP resent successfully." });
+    return res.status(200).json({ message: "OTP resent successfully." });
   };
 
   verifyAccount = async (req: Request, res: Response): Promise<Response> => {
     const { email, otp }: verifyAccountDTO = req.body;
 
-    const user = await this._userModel.findOne({
+    const user = await this._userRepo.findOne({
       filter: {
         email,
         confirmEmailOTP: { $exists: true },
@@ -198,7 +221,7 @@ class AuthenticationService {
     if (!(await compareHash(otp, user?.confirmEmailOTP as string)))
       throw new NotFoundException("Invalid OTP.");
 
-    await this._userModel.updateOne({
+    await this._userRepo.updateOne({
       filter: { email },
       update: {
         confirmEmail: new Date(),
@@ -208,9 +231,7 @@ class AuthenticationService {
       },
     });
 
-    return res
-      .status(200)
-      .json({ message: "Account verified successfully." });
+    return res.status(200).json({ message: "Account verified successfully." });
   };
 }
 

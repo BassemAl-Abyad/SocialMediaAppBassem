@@ -32,7 +32,7 @@ export const bootstrap = async () => {
 
   // All routes
   app.use(`/api/auth`, AuthRouter);
-  app.use(`/api/users`, UserRouter);
+  app.use(`/api/user`, UserRouter);
   app.use(`/api/posts`, PostRouter);
   app.use(`/api/comments`, CommentRouter);
 

@@ -1,5 +1,5 @@
-import jwt from "jsonwebtoken";
-import { RoleEnum, SignatureEnum } from "../enums/auth.enum";
+import jwt, { JwtPayload } from "jsonwebtoken";
+import { RoleEnum, SignatureEnum, TokenTypeEnum } from "../enums/auth.enum";
 import {
   ACCESS_EXPIRES,
   REFRESH_EXPIRES,
@@ -9,8 +9,17 @@ import {
   TOKEN_REFRESH_USER_SECRET_KEY,
 } from "../../config/config.service";
 import { v4 as uuid } from "uuid";
+import { BadRequestException, NotFoundException } from "../response/error.response";
+import { UserRepository } from "../../DB/repositories/user.repo";
+import { HUserDocument, UserModel } from "../../DB/Models/user.model";
+
+export interface CustomJwtPayLoad extends JwtPayload {
+  id: string;
+  jti: string;
+}
 
 export class TokenService {
+  private readonly _userRepo = new UserRepository(UserModel);
   constructor() {}
 
   sign = async (
@@ -21,8 +30,8 @@ export class TokenService {
     return jwt.sign(payload, secret, options);
   };
 
-  verify = async (token: string, secret: string) => {
-    return jwt.verify(token, secret);
+  verify = async (token: string, secret: string): Promise<CustomJwtPayLoad> => {
+    return jwt.verify(token, secret) as CustomJwtPayLoad;
   };
 
   getSignature = ({ signatureLevel = SignatureEnum.USER }) => {
@@ -67,5 +76,37 @@ export class TokenService {
       { expiresIn: Number(REFRESH_EXPIRES) },
     );
     return { accessToken, refreshToken };
+  };
+
+  decodedToken = async ({
+    authorization,
+    tokenType = TokenTypeEnum.ACCESS,
+  }: {
+    authorization: string;
+    tokenType?: TokenTypeEnum;
+  }): Promise<{user: HUserDocument; decoded: CustomJwtPayLoad}> => {
+    if (!authorization)
+      throw new BadRequestException("Authorization Header is missing");
+
+    const [Bearer, token] = authorization.split(" ") || [];
+    if (!Bearer || !token)
+      throw new BadRequestException("Invalid Token Format");
+
+    // signatature
+    let signature = await this.getSignature({
+      signatureLevel:
+        Bearer === "Admin" ? SignatureEnum.ADMIN : SignatureEnum.USER,
+    });
+    const secret =
+      tokenType === TokenTypeEnum.ACCESS
+        ? signature.accessSignature
+        : signature.refereshSignature;
+
+    const decoded = await this.verify(token, secret);
+
+    const user = await this._userRepo.findById({ id: decoded.id });
+    if (!user) throw new NotFoundException("User not registered.");
+
+    return { user, decoded };
   };
 }

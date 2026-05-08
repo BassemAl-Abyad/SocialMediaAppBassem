@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SignatureEnum = exports.RoleEnum = exports.GenderEnum = void 0;
+exports.TokenTypeEnum = exports.SignatureEnum = exports.RoleEnum = exports.GenderEnum = void 0;
 var GenderEnum;
 (function (GenderEnum) {
     GenderEnum["MALE"] = "MALE";
@@ -16,3 +16,8 @@ var SignatureEnum;
     SignatureEnum[SignatureEnum["USER"] = 0] = "USER";
     SignatureEnum[SignatureEnum["ADMIN"] = 1] = "ADMIN";
 })(SignatureEnum || (exports.SignatureEnum = SignatureEnum = {}));
+var TokenTypeEnum;
+(function (TokenTypeEnum) {
+    TokenTypeEnum["ACCESS"] = "ACCESS";
+    TokenTypeEnum["REFRESH"] = "REFRESH";
+})(TokenTypeEnum || (exports.TokenTypeEnum = TokenTypeEnum = {}));

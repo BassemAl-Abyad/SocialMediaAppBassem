@@ -31,7 +31,7 @@ const bootstrap = async () => {
     });
     // All routes
     app.use(`/api/auth`, Modules_1.AuthRouter);
-    app.use(`/api/users`, Modules_1.UserRouter);
+    app.use(`/api/user`, Modules_1.UserRouter);
     app.use(`/api/posts`, Modules_1.PostRouter);
     app.use(`/api/comments`, Modules_1.CommentRouter);
     // Not found route

@@ -11,6 +11,7 @@ const token_1 = require("../../Utils/services/token");
 const auth_enum_1 = require("../../Utils/enums/auth.enum");
 const redis_service_1 = require("../../DB/repositories/redis.service");
 const config_service_1 = require("../../config/config.service");
+const google_auth_library_1 = require("google-auth-library");
 class AuthenticationService {
     _userRepo = new user_repo_1.UserRepository(user_model_1.UserModel);
     _tokenService;
@@ -58,6 +59,47 @@ class AuthenticationService {
         return res
             .status(201)
             .json({ message: "User logged in successfully.", data: { credentials } });
+    };
+    verifyGoogleAccount = async ({ idToken }) => {
+        const client = new google_auth_library_1.OAuth2Client();
+        const ticket = await client.verifyIdToken({
+            idToken,
+            audience: config_service_1.CLIENT_ID,
+        });
+        const payload = ticket.getPayload();
+        return payload;
+    };
+    loginWithGoogle = async (req, res) => {
+        const { idToken } = req.body;
+        const { picture, email, given_name, family_name, email_verified } = await this.verifyGoogleAccount({ idToken });
+        if (!email_verified)
+            throw new error_response_1.BadRequestException("Email not verified.");
+        const user = await this._userRepo.findOne({
+            filter: { email },
+        });
+        if (user) {
+            // User Login
+            if (user.provider === auth_enum_1.ProviderEnum.GOOGLE) {
+                const credentials = await this._tokenService.getNewLoginCredentials(user);
+                return res
+                    .status(200)
+                    .json({ message: "Logged in successfully.", data: { credentials } });
+            }
+        }
+        // User Create
+        const newUser = await this._userRepo.create({
+            data: {
+                firstName: given_name,
+                lastName: family_name,
+                email,
+                ProfilePic: picture,
+                provider: auth_enum_1.ProviderEnum.GOOGLE,
+            },
+        });
+        const credentials = await this._tokenService.getNewLoginCredentials(newUser);
+        return res
+            .status(201)
+            .json({ message: "Logged in successfully.", data: { credentials } });
     };
     logoutWithRedis = async (req, res) => {
         const { flag } = req.body;

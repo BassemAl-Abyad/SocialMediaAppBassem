@@ -1,5 +1,9 @@
 import mongoose, { HydratedDocument, Schema } from "mongoose";
-import { GenderEnum, RoleEnum } from "../../Utils/enums/auth.enum";
+import {
+  GenderEnum,
+  ProviderEnum,
+  RoleEnum,
+} from "../../Utils/enums/auth.enum";
 
 // Interface
 
@@ -20,7 +24,9 @@ export interface IUser {
 
   gender: GenderEnum;
   role?: RoleEnum;
+  provider?: ProviderEnum;
   changeCredentialTime: Date;
+  ProfilePic?: string;
 
   createdAt?: Date;
   updatedAt?: Date;
@@ -63,7 +69,9 @@ export const userSchema = new Schema<IUser>(
     },
     password: {
       type: String,
-      required: true,
+      required: function (): boolean {
+        return this.provider === ProviderEnum.SYSTEM;
+      },
     },
     resetPasswordOTP: {
       type: String,
@@ -75,6 +83,9 @@ export const userSchema = new Schema<IUser>(
       type: String,
     },
     changeCredentialTime: { type: Date },
+    ProfilePic: {
+      type: String,
+    },
     gender: {
       type: String,
       enum: Object.values(GenderEnum),
@@ -84,6 +95,11 @@ export const userSchema = new Schema<IUser>(
       type: String,
       enum: Object.values(RoleEnum),
       default: RoleEnum.USER,
+    },
+    provider: {
+      type: String,
+      enum: Object.values(ProviderEnum),
+      default: ProviderEnum.SYSTEM,
     },
   },
   {

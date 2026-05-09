@@ -16,6 +16,10 @@ router.post(
   validation(authValidation.loginSchema),
   authService.login,
 );
+router.post(
+  "/social-login",
+  authService.loginWithGoogle,
+);
 router.patch(
   "/confirm-email",
   validation(authValidation.confirmEmailSchema),

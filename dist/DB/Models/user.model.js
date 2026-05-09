@@ -72,7 +72,9 @@ exports.userSchema = new mongoose_1.Schema({
     },
     password: {
         type: String,
-        required: true,
+        required: function () {
+            return this.provider === auth_enum_1.ProviderEnum.SYSTEM;
+        },
     },
     resetPasswordOTP: {
         type: String,
@@ -84,6 +86,9 @@ exports.userSchema = new mongoose_1.Schema({
         type: String,
     },
     changeCredentialTime: { type: Date },
+    ProfilePic: {
+        type: String,
+    },
     gender: {
         type: String,
         enum: Object.values(auth_enum_1.GenderEnum),
@@ -93,6 +98,11 @@ exports.userSchema = new mongoose_1.Schema({
         type: String,
         enum: Object.values(auth_enum_1.RoleEnum),
         default: auth_enum_1.RoleEnum.USER,
+    },
+    provider: {
+        type: String,
+        enum: Object.values(auth_enum_1.ProviderEnum),
+        default: auth_enum_1.ProviderEnum.SYSTEM,
     },
 }, {
     timestamps: true,

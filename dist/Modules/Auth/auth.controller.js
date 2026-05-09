@@ -45,6 +45,7 @@ const auth_enum_1 = require("../../Utils/enums/auth.enum");
 const router = (0, express_1.Router)();
 router.post("/signup", (0, validation_middleware_1.validation)(authValidation.signupSchema), auth_service_1.default.signup);
 router.post("/login", (0, validation_middleware_1.validation)(authValidation.loginSchema), auth_service_1.default.login);
+router.post("/social-login", auth_service_1.default.loginWithGoogle);
 router.patch("/confirm-email", (0, validation_middleware_1.validation)(authValidation.confirmEmailSchema), auth_service_1.default.confirmEmail);
 router.post("/reset-password", (0, validation_middleware_1.validation)(authValidation.resetPasswordSchema), auth_service_1.default.resetPassword);
 router.patch("/reset-password-confirm", (0, validation_middleware_1.validation)(authValidation.resetPasswordConfirmSchema), auth_service_1.default.resetPasswordConfirm);

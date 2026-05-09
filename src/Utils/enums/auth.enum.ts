@@ -22,3 +22,8 @@ export enum LogoutTypeEnum {
     LOGOUT = "LOGOUT",
     LOGOUT_FROM_ALL = "LOGOUT_FROM_ALL"
 }
+
+export enum ProviderEnum {
+    SYSTEM = "SYSTEM",
+    GOOGLE = "GOOGLE"
+}

@@ -113,26 +113,58 @@ export const userSchema = new Schema<IUser>(
   },
 );
 
-userSchema.pre("save", async function (this: HUserDocument & {wasNew: boolean}) {
-  this.wasNew = this.isNew;
-  if (this.isModified("password")) {
-    this.password = await generateHash(this.password);
-  }
-  if (this.isModified("phone")) {
-    this.phone = await encrypt(this.phone);
+// Validate example
+userSchema.pre("validate", function () {
+  console.log("Pre-validate: Document is about to be validated", this.username);
+});
+
+userSchema.post("validate", function (error: any) {
+  if (error) {
+    console.log("Post-validate: Document validation failed", error.message);
+  } else {
+    console.log("Post-validate: Document validation successful", this.username);
   }
 });
 
+// Save example
+userSchema.pre(
+  "save",
+  async function (this: HUserDocument & { wasNew: boolean }) {
+    this.wasNew = this.isNew;
+    if (this.isModified("password")) {
+      this.password = await generateHash(this.password);
+    }
+    if (this.isModified("phone")) {
+      this.phone = await encrypt(this.phone);
+    }
+  },
+);
+
 userSchema.post("save", async function () {
-  const that = this as HUserDocument & {wasNew: boolean};
+  const that = this as HUserDocument & { wasNew: boolean };
   if (that.wasNew) {
-  await emailEvents.emit("confirmEmail", {
-    otp: generateOTP(),
-    to: this.email,
-    username: this.username,
-  });
-}
+    await emailEvents.emit("confirmEmail", {
+      otp: generateOTP(),
+      to: this.email,
+      username: this.username,
+    });
+  }
 });
+
+// Model middleware example
+// userSchema.pre("insertMany", async function (docs) {
+//   console.log(this, docs);
+// });
+
+// userSchema.post("insertMany", async function (docs, next) {
+//   console.log(this, docs);
+//   next();
+// });
+
+// updateOne example
+// userSchema.pre("updateOne", async function () {
+//   console.log(this);
+// })
 
 export const UserModel = mongoose.model("User", userSchema);
 export type HUserDocument = HydratedDocument<IUser>;

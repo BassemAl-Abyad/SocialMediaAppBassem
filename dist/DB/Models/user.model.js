@@ -113,6 +113,19 @@ exports.userSchema = new mongoose_1.Schema({
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
 });
+// Validate example
+exports.userSchema.pre("validate", function () {
+    console.log("Pre-validate: Document is about to be validated", this.username);
+});
+exports.userSchema.post("validate", function (error) {
+    if (error) {
+        console.log("Post-validate: Document validation failed", error.message);
+    }
+    else {
+        console.log("Post-validate: Document validation successful", this.username);
+    }
+});
+// Save example
 exports.userSchema.pre("save", async function () {
     this.wasNew = this.isNew;
     if (this.isModified("password")) {
@@ -132,4 +145,16 @@ exports.userSchema.post("save", async function () {
         });
     }
 });
+// Model middleware example
+// userSchema.pre("insertMany", async function (docs) {
+//   console.log(this, docs);
+// });
+// userSchema.post("insertMany", async function (docs, next) {
+//   console.log(this, docs);
+//   next();
+// });
+// updateOne example
+// userSchema.pre("updateOne", async function () {
+//   console.log(this);
+// })
 exports.UserModel = mongoose_1.default.model("User", exports.userSchema);

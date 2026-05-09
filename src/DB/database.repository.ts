@@ -1,4 +1,5 @@
 import {
+  AnyKeys,
   CreateOptions,
   HydratedDocument,
   MongooseUpdateQueryOptions,
@@ -53,6 +54,14 @@ export abstract class DatabaseRepository<TDocument> {
     options?: CreateOptions | undefined;
   }): Promise<HydratedDocument<TDocument>[] | undefined> {
     return await this.model.create(data as any, options);
+  }
+
+    async insertMany({
+    data,
+  }: {
+    data: AnyKeys<TDocument>[];
+  }) {
+    return await this.model.insertMany(data as any);
   }
 
   async updateOne({

@@ -52,14 +52,12 @@ class AuthenticationService {
           lastName,
           username,
           email,
-          password: await generateHash(password),
-          phone: await encrypt(phone),
+          password,
+          phone,
           confirmEmailOTP: await generateHash(otp),
         },
       ],
     });
-
-    await emailEvents.emit("confirmEmail", { to: email, username, otp });
 
     return res
       .status(201)

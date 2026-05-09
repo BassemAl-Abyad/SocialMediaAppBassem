@@ -4,7 +4,6 @@ const user_model_1 = require("../../DB/Models/user.model");
 const user_repo_1 = require("../../DB/repositories/user.repo");
 const error_response_1 = require("../../Utils/response/error.response");
 const hash_1 = require("../../Utils/security/hash");
-const encryption_1 = require("../../Utils/security/encryption");
 const generateOTP_1 = require("../../Utils/generateOTP");
 const email_events_1 = require("../../Utils/events/email.events");
 const token_1 = require("../../Utils/services/token");
@@ -35,13 +34,12 @@ class AuthenticationService {
                     lastName,
                     username,
                     email,
-                    password: await (0, hash_1.generateHash)(password),
-                    phone: await (0, encryption_1.encrypt)(phone),
+                    password,
+                    phone,
                     confirmEmailOTP: await (0, hash_1.generateHash)(otp),
                 },
             ],
         });
-        await email_events_1.emailEvents.emit("confirmEmail", { to: email, username, otp });
         return res
             .status(201)
             .json({ message: "User created successfully.", data: { user } });

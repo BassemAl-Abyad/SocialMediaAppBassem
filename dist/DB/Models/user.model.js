@@ -36,6 +36,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserModel = exports.userSchema = void 0;
 const mongoose_1 = __importStar(require("mongoose"));
 const auth_enum_1 = require("../../Utils/enums/auth.enum");
+const hash_1 = require("../../Utils/security/hash");
+const encryption_1 = require("../../Utils/security/encryption");
+const email_events_1 = require("../../Utils/events/email.events");
+const generateOTP_1 = require("../../Utils/generateOTP");
 exports.userSchema = new mongoose_1.Schema({
     firstName: {
         type: String,
@@ -108,5 +112,24 @@ exports.userSchema = new mongoose_1.Schema({
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
+});
+exports.userSchema.pre("save", async function () {
+    this.wasNew = this.isNew;
+    if (this.isModified("password")) {
+        this.password = await (0, hash_1.generateHash)(this.password);
+    }
+    if (this.isModified("phone")) {
+        this.phone = await (0, encryption_1.encrypt)(this.phone);
+    }
+});
+exports.userSchema.post("save", async function () {
+    const that = this;
+    if (that.wasNew) {
+        await email_events_1.emailEvents.emit("confirmEmail", {
+            otp: (0, generateOTP_1.generateOTP)(),
+            to: this.email,
+            username: this.username,
+        });
+    }
 });
 exports.UserModel = mongoose_1.default.model("User", exports.userSchema);

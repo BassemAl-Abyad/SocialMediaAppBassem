@@ -4,6 +4,10 @@ import {
   ProviderEnum,
   RoleEnum,
 } from "../../Utils/enums/auth.enum";
+import { generateHash } from "../../Utils/security/hash";
+import { encrypt } from "../../Utils/security/encryption";
+import { emailEvents } from "../../Utils/events/email.events";
+import { generateOTP } from "../../Utils/generateOTP";
 
 // Interface
 
@@ -108,6 +112,27 @@ export const userSchema = new Schema<IUser>(
     toObject: { virtuals: true },
   },
 );
+
+userSchema.pre("save", async function (this: HUserDocument & {wasNew: boolean}) {
+  this.wasNew = this.isNew;
+  if (this.isModified("password")) {
+    this.password = await generateHash(this.password);
+  }
+  if (this.isModified("phone")) {
+    this.phone = await encrypt(this.phone);
+  }
+});
+
+userSchema.post("save", async function () {
+  const that = this as HUserDocument & {wasNew: boolean};
+  if (that.wasNew) {
+  await emailEvents.emit("confirmEmail", {
+    otp: generateOTP(),
+    to: this.email,
+    username: this.username,
+  });
+}
+});
 
 export const UserModel = mongoose.model("User", userSchema);
 export type HUserDocument = HydratedDocument<IUser>;

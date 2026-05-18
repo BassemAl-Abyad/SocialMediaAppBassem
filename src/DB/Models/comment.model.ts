@@ -19,6 +19,7 @@ export interface IComment {
   tags?: Types.ObjectId[] | IUser[];
 
   postId: Types.ObjectId | IPost;
+  commentId?: Types.ObjectId;
 
   createdBy: Types.ObjectId | IUser;
   updatedBy?: Types.ObjectId | IUser;
@@ -53,6 +54,7 @@ const commentSchema = new Schema<IComment>(
     tags: [{ type: Schema.Types.ObjectId, ref: "User" }],
     likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
     postId: { type: Schema.Types.ObjectId, ref: "Post" },
+    commentId: { type: Schema.Types.ObjectId, ref: "Comment" },
 
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     updatedBy: { type: Schema.Types.ObjectId, ref: "User" },

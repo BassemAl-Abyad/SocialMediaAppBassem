@@ -363,6 +363,87 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Comment",
+      "item": [
+        {
+          "name": "Create Comment",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "User eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMGFjYjVhZjQzMmE1MDQyY2ExMmZlMyIsImp0aSI6IjI0NGYxNWMyLTk1ZWMtNDY3YS05ODcxLWYyMTRiODAyZGUyYiIsImlhdCI6MTc3OTA5NzY3NiwiZXhwIjoxNzc5MTAxMjc2fQ.tkzAl0b6nmZhbr5V4jyJvus1ReFtCLU03puuHW3tXZ0",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"content\": \"Test post\",\r\n    \"availability\": 0,\r\n    \"tags\": [\"6a0acb5af432a5042ca12fe3\"]\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/post/:postId/comment",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "post",
+                ":postId",
+                "comment"
+              ],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Reply",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "User eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjZhMGFjYjVhZjQzMmE1MDQyY2ExMmZlMyIsImp0aSI6IjI0NGYxNWMyLTk1ZWMtNDY3YS05ODcxLWYyMTRiODAyZGUyYiIsImlhdCI6MTc3OTA5NzY3NiwiZXhwIjoxNzc5MTAxMjc2fQ.tkzAl0b6nmZhbr5V4jyJvus1ReFtCLU03puuHW3tXZ0",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"content\": \"Test post\",\r\n    \"availability\": 0,\r\n    \"tags\": [\"6a0acb5af432a5042ca12fe3\"]\r\n}"
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/post/:postId/reply",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "post",
+                ":postId",
+                "reply"
+              ],
+              "variable": [
+                {
+                  "key": "postId",
+                  "value": ""
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }

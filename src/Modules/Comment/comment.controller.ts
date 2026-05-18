@@ -23,4 +23,12 @@ router.patch(
   commentService.reactComment,
 );
 
+router.post(
+  "/:commentId/reply",
+  authentication({ tokenType: TokenTypeEnum.ACCESS }),
+  authorization({ accessRoles: [RoleEnum.USER, RoleEnum.ADMIN] }),
+  validation(commentValidation.replyCommentSchema),
+  commentService.createReply,
+);
+
 export default router;

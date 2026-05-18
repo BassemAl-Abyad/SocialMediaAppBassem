@@ -14,7 +14,7 @@ class PostService {
     constructor() {
         this._notificationService = new notification_service_1.NotificationService();
     }
-    async createPost(req, res) {
+    createPost = async (req, res) => {
         const { content, availability, tags = [] } = req.body;
         // Validate tagged users
         const taggedUser = tags.length
@@ -60,6 +60,6 @@ class PostService {
             { path: "tags", select: "firstName lastName email" },
         ]);
         return res.status(201).json({ message: "Post created." });
-    }
+    };
 }
 exports.default = new PostService();

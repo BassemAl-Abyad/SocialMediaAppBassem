@@ -18,7 +18,7 @@ class PostService {
     this._notificationService = new NotificationService();
   }
 
-  async createPost(req: Request, res: Response): Promise<Response> {
+  createPost = async (req: Request, res: Response): Promise<Response> => {
     const { content, availability, tags = [] }: createPostDTO = req.body;
 
     // Validate tagged users

@@ -61,7 +61,7 @@ export abstract class DatabaseRepository<TDocument> {
       doc.populate(options.populate as PopulateOptions[]);
     }
     if (options?.skip) doc.skip(options.skip);
-    if (options?.limit) doc.skip(options.limit);
+    if (options?.limit) doc.limit(options.limit);
 
     return await doc.exec();
   }

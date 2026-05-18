@@ -3,7 +3,7 @@ import { Express } from "express";
 import helmet from "helmet";
 import { corsMiddleware } from "./Utils/cors/cors.utils";
 import { generalLimiter } from "./Utils/rateLimiter/rateLimiter";
-import { AuthRouter, PostRouter, UserRouter } from "./Modules";
+import { AuthRouter, PostRouter, UserRouter, StoryRouter, NotificationRouter } from "./Modules";
 import {
   globalErrorHandler,
   NotFoundException,
@@ -42,9 +42,11 @@ export const bootstrap = async () => {
   app.use(`/api/auth`, AuthRouter);
   app.use(`/api/user`, UserRouter);
   app.use(`/api/post`, PostRouter);
-  
+  app.use(`/api/story`, StoryRouter);
+  app.use(`/api/notification`, NotificationRouter);
+
   // Not found route
-  app.use("{/*dummy}", (req: Request, res: Response): Response => {
+  app.use("*", (req: Request, res: Response) => {
     throw new NotFoundException("Handler not found!");
   });
 

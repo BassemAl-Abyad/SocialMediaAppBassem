@@ -67,4 +67,50 @@ const postSchema = new Schema<IPost>(
   },
 );
 
+postSchema.pre(/^find/, function (this: any) {
+  const query = this.getQuery();
+  const options = this.getOptions?.();
+  if (
+    query?.includeDeleted ||
+    options?.includeDeleted ||
+    Object.prototype.hasOwnProperty.call(query, "deletedAt")
+  ) {
+    return;
+  }
+  this.where({ deletedAt: { $exists: false } });
+});
+
+postSchema.methods.softDelete = async function () {
+  if (!this.deletedAt) {
+    this.deletedAt = new Date();
+    await this.save();
+    const Comment = this.model("Comment");
+    await Comment.updateMany(
+      { postId: this._id, deletedAt: { $exists: false } },
+      { deletedAt: this.deletedAt },
+    );
+  }
+  return this;
+};
+
+postSchema.methods.restore = async function () {
+  if (this.deletedAt) {
+    this.deletedAt = undefined;
+    this.restoredAt = new Date();
+    await this.save();
+    const Comment = this.model("Comment");
+    await Comment.updateMany(
+      { postId: this._id, deletedAt: { $exists: true } },
+      { $unset: { deletedAt: true }, restoredAt: new Date() },
+    );
+  }
+  return this;
+};
+
+postSchema.methods.hardDelete = async function () {
+  const Comment = this.model("Comment");
+  await Comment.deleteMany({ postId: this._id });
+  return await this.deleteOne();
+};
+
 export const PostModel = model<IPost>("Post", postSchema);

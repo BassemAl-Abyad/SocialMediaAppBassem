@@ -2,15 +2,16 @@ import { Request, Response } from "express";
 import { NotificationService } from "../../Utils/services/notification.service";
 import { UserRepository } from "../../DB/repositories/user.repo";
 import { PostRepository } from "../../DB/repositories/post.repo";
-import { IPost, PostModel } from "../../DB/Models/post.model";
+import { PostModel } from "../../DB/Models/post.model";
 import { UserModel } from "../../DB/Models/user.model";
 import { getAvailability } from "../Post/post.service";
-import { NotFoundException } from "../../Utils/response/error.response";
+import { NotFoundException, ForbiddenException } from "../../Utils/response/error.response";
 import { HydratedDocument, Types } from "mongoose";
 import { getFCMs } from "../../DB/repositories/redis.service";
 import { CommentRepository } from "../../DB/repositories/comment.repo";
-import { CommentModel } from "../../DB/Models/comment.model";
+import { CommentModel, IComment } from "../../DB/Models/comment.model";
 import { ReactionTypeEnum } from "../../Utils/enums/reaction.enum";
+import { RoleEnum } from "../../Utils/enums/auth.enum";
 
 class CommentService {
   private readonly _userRepo = new UserRepository(UserModel);
@@ -21,6 +22,21 @@ class CommentService {
   constructor() {
     this._notificationService = new NotificationService();
   }
+
+  listComments = async (req: Request, res: Response) => {
+    const { postId } = req.params;
+    const comments = await this._commentRepo.find({
+      filter: { postId, commentId: { $exists: false } },
+      options: {
+        populate: [
+          { path: "createdBy", select: "firstName lastName username ProfilePic" },
+          { path: "tags", select: "firstName lastName username ProfilePic" },
+        ],
+      },
+    });
+
+    return res.status(200).json({ message: "Comments loaded.", data: comments });
+  };
 
   createComment = async (req: Request, res: Response) => {
     const { postId } = req.params;
@@ -45,7 +61,7 @@ class CommentService {
         );
       }
       for (const tag of tags) {
-        mentions.push(tag);
+        mentions.push(new Types.ObjectId(tag));
         const tagged = await getFCMs(tag);
         tagged.map((token: string) => FCM_Tokens.push(token));
       }
@@ -57,45 +73,37 @@ class CommentService {
           {
             createdBy: req.user._id,
             content: content as string,
-            postId: post._id,
+            postId: new Types.ObjectId(post._id),
             tags: mentions,
           },
         ],
       })) || [];
 
     if (FCM_Tokens.length && comment) {
-      this._notificationService.sendNotifications({
+      await this._notificationService.sendNotifications({
         tokens: FCM_Tokens,
         data: {
-          title: "Post Mention",
+          title: "Comment Mention",
           body: JSON.stringify({
-            message: `${req.user.username} mentioned you in a post`,
-            postId: post._id,
+            message: `${req.user.username} tagged you in a comment.`,
+            postId,
             commentId: comment._id,
           }),
         },
       });
     }
 
-    return res
-      .status(200)
-      .json({ message: "Hello From Comment Service", comment });
+    return res.status(201).json({ message: "Comment created.", data: comment });
   };
 
   reactComment = async (req: Request, res: Response) => {
     const { commentId } = req.params as { commentId: string };
     const { reactionType } = req.query as { reactionType: ReactionTypeEnum };
 
-    const comment = await this._commentRepo.findOne({
-      filter: { _id: commentId },
-    });
-
+    const comment = await this._commentRepo.findOne({ filter: { _id: commentId } });
     if (!comment) throw new NotFoundException("Comment not found!");
 
-    if (!comment.reactions) {
-      comment.reactions = [];
-    }
-
+    if (!comment.reactions) comment.reactions = [];
     const reactions = comment.reactions as {
       userId: Types.ObjectId;
       reactionType: ReactionTypeEnum;
@@ -124,7 +132,7 @@ class CommentService {
     const updatedComment = await comment.save();
     return res.status(200).json({
       message: "Reaction updated successfully",
-      comment: updatedComment,
+      data: updatedComment,
     });
   };
 
@@ -159,13 +167,13 @@ class CommentService {
         );
       }
       for (const tag of tags) {
-        mentions.push(tag);
+        mentions.push(new Types.ObjectId(tag));
         const tagged = await getFCMs(tag);
         tagged.map((token: string) => FCM_Tokens.push(token));
       }
     }
 
-    const post = comment.postId as HydratedDocument<IPost>;
+    const post = comment.postId as HydratedDocument<any>;
     const [reply] =
       (await this._commentRepo.create({
         data: [
@@ -180,23 +188,46 @@ class CommentService {
       })) || [];
 
     if (FCM_Tokens.length && reply) {
-      this._notificationService.sendNotifications({
+      await this._notificationService.sendNotifications({
         tokens: FCM_Tokens,
         data: {
-          title: "Post Mention",
+          title: "Comment Mention",
           body: JSON.stringify({
-            message: `${req.user.username} mentioned you in a post`,
-            postId: post._id,
-            commentId: comment._id,
+            message: `${req.user.username} replied to a comment and tagged you.`,
+            postId,
+            commentId,
             replyId: reply._id,
           }),
         },
       });
     }
 
-    return res
-      .status(200)
-      .json({ message: "Hello From Comment Service", reply });
+    return res.status(201).json({ message: "Reply created.", data: reply });
+  };
+
+  deleteComment = async (req: Request, res: Response) => {
+    const { commentId } = req.params as { commentId: string };
+    const comment = (await this._commentRepo.findOne({ filter: { _id: commentId } })) as any;
+    if (!comment) throw new NotFoundException("Comment not found.");
+    if (comment.createdBy.toString() !== req.user._id.toString() && req.user.role !== RoleEnum.ADMIN) {
+      throw new ForbiddenException("You may only delete your own comment.");
+    }
+    await comment.softDelete();
+    return res.status(200).json({ message: "Comment deleted successfully." });
+  };
+
+  restoreComment = async (req: Request, res: Response) => {
+    const { commentId } = req.params as { commentId: string };
+    const comment = (await CommentModel.findOne({
+      _id: commentId,
+      deletedAt: { $exists: true },
+    })) as any;
+    if (!comment) throw new NotFoundException("Comment not found.");
+    if (comment.createdBy.toString() !== req.user._id.toString() && req.user.role !== RoleEnum.ADMIN) {
+      throw new ForbiddenException("You may only restore your own comment.");
+    }
+    await comment.restore();
+    return res.status(200).json({ message: "Comment restored.", data: comment });
   };
 }
 

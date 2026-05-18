@@ -1,13 +1,20 @@
 import { model, Schema, Types } from "mongoose";
 import { IUser } from "./user.model";
 import { AvailabilityEnum } from "../../Utils/enums/auth.enum";
+import { ReactionTypeEnum } from "../../Utils/enums/reaction.enum";
+
+export interface IReaction {
+  userId: Types.ObjectId | IUser;
+  reactionType: ReactionTypeEnum;
+  createdAt?: Date;
+}
 
 export interface IPost {
   folderId?: string;
   content?: string;
   attachments?: string[];
 
-  likes?: Types.ObjectId[] | IUser[];
+  reactions?: IReaction[];
   tags?: Types.ObjectId[] | IUser[];
   availability: AvailabilityEnum;
 
@@ -36,7 +43,17 @@ const postSchema = new Schema<IPost>(
       enum: AvailabilityEnum,
       default: AvailabilityEnum.PUBLIC,
     },
-    likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    reactions: [
+      {
+        userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+        reactionType: {
+          type: String,
+          enum: ReactionTypeEnum,
+          default: ReactionTypeEnum.LIKE,
+        },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
     tags: [{ type: Schema.Types.ObjectId, ref: "User" }],
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     updatedBy: { type: Schema.Types.ObjectId, ref: "User" },

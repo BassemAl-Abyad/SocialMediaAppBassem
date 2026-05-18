@@ -1,6 +1,7 @@
 import z, { superRefine } from "zod";
 import { generalFields } from "../../Middleware/validation.middleware";
 import { AvailabilityEnum } from "../../Utils/enums/auth.enum";
+import { ReactionTypeEnum } from "../../Utils/enums/reaction.enum";
 import { Types } from "mongoose";
 
 export const createPostSchema = {
@@ -45,9 +46,11 @@ export const createPostSchema = {
 
 export const reactPostSchema = {
   params: z.strictObject({
-  postId: generalFields.id,
-}),
-query: z.strictObject({
-  react: z.coerce.number(),
-}),
+    postId: generalFields.id,
+  }),
+  query: z.strictObject({
+    reactionType: z.enum(
+      Object.values(ReactionTypeEnum) as [string, ...string[]],
+    ),
+  }),
 };

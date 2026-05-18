@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { createPostDTO, reactParamPostDTO } from "./post.dto";
+import { createPostDTO, reactParamPostDTO, reactQueryPostDTO } from "./post.dto";
 import { UserRepository } from "../../DB/repositories/user.repo";
 import { PostRepository } from "../../DB/repositories/post.repo";
 import { NotificationService } from "../../Utils/services/notification.service";
@@ -9,6 +9,7 @@ import { NotFoundException } from "../../Utils/response/error.response";
 import { Types } from "mongoose";
 import { getFCMs } from "../../DB/repositories/redis.service";
 import { AvailabilityEnum } from "../../Utils/enums/auth.enum";
+import { ReactionTypeEnum } from "../../Utils/enums/reaction.enum";
 
 export const getAvailability = (user: HUserDocument) => {
   return [
@@ -91,22 +92,54 @@ class PostService {
 
   reactPost = async (req: Request, res: Response): Promise<Response> => {
     const { postId } = req.params as reactParamPostDTO;
-    const { react } = req.query;
+    const { reactionType } = req.query as any;
 
-    const post = await this._postRepo.findOneAndUpdate({
+    const post = await this._postRepo.findOne({
       filter: {
         _id: postId,
         $or: getAvailability(req.user),
       },
-      update: {
-        ...(Number(react) > 0
-          ? { $addToSet: { likes: req.user._id } }
-          : { $pull: { likes: req.user._id } }),
-      },
     });
-    if(!post) throw new NotFoundException("Post not found!");
 
-    return res.status(200).json({ message: "Done", post });
+    if (!post) throw new NotFoundException("Post not found!");
+
+    // Initialize reactions array if it doesn't exist
+    if (!post.reactions) {
+      post.reactions = [];
+    }
+
+    const reactions = post.reactions;
+
+    // Check if user already has a reaction to this post
+    const existingReactionIndex = reactions.findIndex(
+      (reaction) => reaction.userId.toString() === req.user._id.toString(),
+    );
+
+    if (existingReactionIndex >= 0) {
+      // If the same reaction type, remove it; otherwise update it
+      const existingReaction = reactions[existingReactionIndex]!;
+      if (existingReaction.reactionType === reactionType) {
+        // Remove the reaction
+        reactions.splice(existingReactionIndex, 1);
+      } else {
+        // Update the reaction type
+        existingReaction.reactionType = reactionType as ReactionTypeEnum;
+      }
+    } else {
+      // Add new reaction
+      reactions.push({
+        userId: req.user._id,
+        reactionType: reactionType as ReactionTypeEnum,
+        createdAt: new Date(),
+      });
+    }
+
+    const updatedPost = await post.save();
+
+    return res.status(200).json({ 
+      message: "Reaction updated successfully", 
+      post: updatedPost 
+    });
   };
 }
 

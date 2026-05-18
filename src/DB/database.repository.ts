@@ -10,6 +10,7 @@ import {
   UpdateWriteOpResult,
 } from "mongoose";
 import { Model, QueryFilter } from "mongoose";
+import { update } from "./repositories/redis.service";
 
 export abstract class DatabaseRepository<TDocument> {
   constructor(protected readonly model: Model<TDocument>) {}
@@ -63,6 +64,25 @@ export abstract class DatabaseRepository<TDocument> {
     if (options?.limit) doc.skip(options.limit);
 
     return await doc.exec();
+  }
+
+  async findOneAndUpdate({
+    filter,
+    update,
+    options = { new: true },
+  }: {
+    filter: QueryFilter<TDocument>;
+    update?: UpdateQuery<TDocument>;
+    options?: QueryOptions<TDocument> | null;
+  }) {
+    if (Array.isArray(update)) {
+      update.push({ $set: { __v: { $add: ["$__v", 1] } } });
+      return await this.model.findOneAndUpdate(filter, update, { ...options });
+    }
+    return await this.model.findOneAndUpdate(filter, update, {
+      ...options,
+      $inc: { __v: 1 },
+    });
   }
 
   async create({

@@ -1,14 +1,22 @@
 import { Request, Response } from "express";
-import { createPostDTO } from "./post.dto";
+import { createPostDTO, reactParamPostDTO } from "./post.dto";
 import { UserRepository } from "../../DB/repositories/user.repo";
 import { PostRepository } from "../../DB/repositories/post.repo";
 import { NotificationService } from "../../Utils/services/notification.service";
-import { UserModel } from "../../DB/Models/user.model";
+import { HUserDocument, UserModel } from "../../DB/Models/user.model";
 import { PostModel } from "../../DB/Models/post.model";
 import { NotFoundException } from "../../Utils/response/error.response";
 import { Types } from "mongoose";
 import { getFCMs } from "../../DB/repositories/redis.service";
+import { AvailabilityEnum } from "../../Utils/enums/auth.enum";
 
+export const getAvailability = (user: HUserDocument) => {
+  return [
+    { availability: AvailabilityEnum.PUBLIC },
+    { availability: AvailabilityEnum.ONLY_ME, createdBy: user._id },
+    { tags: { $in: [user._id] } },
+  ];
+};
 class PostService {
   private readonly _userRepo = new UserRepository(UserModel);
   private readonly _postRepo = new PostRepository(PostModel);
@@ -79,7 +87,27 @@ class PostService {
     ]);
 
     return res.status(201).json({ message: "Post created." });
-  }
+  };
+
+  reactPost = async (req: Request, res: Response): Promise<Response> => {
+    const { postId } = req.params as reactParamPostDTO;
+    const { react } = req.query;
+
+    const post = await this._postRepo.findOneAndUpdate({
+      filter: {
+        _id: postId,
+        $or: getAvailability(req.user),
+      },
+      update: {
+        ...(Number(react) > 0
+          ? { $addToSet: { likes: req.user._id } }
+          : { $pull: { likes: req.user._id } }),
+      },
+    });
+    if(!post) throw new NotFoundException("Post not found!");
+
+    return res.status(200).json({ message: "Done", post });
+  };
 }
 
 export default new PostService();

@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import z, { ZodError, ZodType } from "zod";
 import { BadRequestException } from "../Utils/response/error.response";
+import { Types } from "mongoose";
 
 type KeyReqType = keyof Request;
 type SchemaType = Partial<Record<KeyReqType, ZodType>>;
@@ -58,4 +59,18 @@ export const generalFields = {
     })
     .optional(),
   otp: z.string().regex(/^\d{6}$/),
+  file: function (mimeType: string[]) {
+    return z.strictObject({
+      fieldname: z.string(),
+      originalname: z.string(),
+      encoding: z.string(),
+      mimeType: z.enum(mimeType),
+      buffer: z.any().optional(),
+      path: z.string().optional(),
+      size: z.number(),
+    });
+  },
+  id: z.string().refine((value) => {
+    return Types.ObjectId.isValid(value);
+  }, "Invalid ID format"),
 };

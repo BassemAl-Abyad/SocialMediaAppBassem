@@ -27,3 +27,9 @@ export enum ProviderEnum {
     SYSTEM = "SYSTEM",
     GOOGLE = "GOOGLE"
 }
+
+export enum AvailabilityEnum {
+    PUBLIC,
+    FRIENDS,
+    ONLY_ME,
+}

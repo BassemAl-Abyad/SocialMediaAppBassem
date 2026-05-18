@@ -21,9 +21,15 @@ import { generateOTP } from "../../Utils/generateOTP";
 import { emailEvents } from "../../Utils/events/email.events";
 import { TokenService } from "../../Utils/services/token";
 import { LogoutTypeEnum, ProviderEnum } from "../../Utils/enums/auth.enum";
-import { revokeTokenKey, set } from "../../DB/repositories/redis.service";
+import {
+  addFCM,
+  getFCMs,
+  revokeTokenKey,
+  set,
+} from "../../DB/repositories/redis.service";
 import { ACCESS_EXPIRES, CLIENT_ID } from "../../config/config.service";
 import { OAuth2Client } from "google-auth-library";
+import { notification } from "../../Utils/services/notification.service";
 
 class AuthenticationService {
   private _userRepo = new UserRepository(UserModel);
@@ -59,22 +65,41 @@ class AuthenticationService {
       ],
     });
 
+    await emailEvents.emit("confirmEmail", {
+      to: email,
+      username,
+      otp,
+    });
+
     return res
       .status(201)
       .json({ message: "User created successfully.", data: { user } });
   };
 
   login = async (req: Request, res: Response): Promise<Response> => {
-    const { email, password }: loginDTO = req.body;
+    const { email, password, FCM }: loginDTO = req.body;
 
     const user = await this._userRepo.findOne({
       filter: { email, confirmEmail: { $exists: true } },
     });
     if (!user)
-      throw new NotFoundException("User not found or already confirmed.");
+      throw new NotFoundException("User not found or email not confirmed yet.");
 
     if (!(await compareHash(password, user.password)))
       throw new BadRequestException("Invalid email or password.");
+
+    if (FCM) {
+      await addFCM(user._id, FCM);
+      const tokens = await getFCMs(user._id);
+      if (tokens?.length) {
+        notification
+          .sendNotifications({
+            tokens,
+            data: { title: "Login", body: `New Login at ${Date.now()}` },
+          })
+          .catch((error) => console.error("Notification error:", error));
+      }
+    }
 
     const credentials = await this._tokenService.getNewLoginCredentials(
       user as any,

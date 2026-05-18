@@ -1,38 +1,43 @@
+import { Types } from "mongoose";
 import { redisClient } from "./redis.connection.js";
 
 interface TokenParams {
-    userId: string | number;
+  userId: string | number;
 }
 
 interface RevokeTokenParams extends TokenParams {
-    jti: string;
+  jti: string;
 }
 
 interface RedisSetParams {
-    key: string;
-    value: any;
-    ttl?: number | null;
+  key: string;
+  value: any;
+  ttl?: number | null;
 }
 
 interface RedisParams {
-    key: string;
-    value: any;
-    ttl?: number | null;
+  key: string;
+  value: any;
+  ttl?: number | null;
 }
 
-export const revokeTokenKeyPrefix = ({ userId }:TokenParams) => {
+export const revokeTokenKeyPrefix = ({ userId }: TokenParams) => {
   return `user:revokeToken:${userId}`;
 };
 
-export const revokeTokenKey = ({ userId, jti }:RevokeTokenParams) => {
+export const revokeTokenKey = ({ userId, jti }: RevokeTokenParams) => {
   return `${revokeTokenKeyPrefix({ userId })}:${jti}`;
 };
 
-export const globalRevokeKey = ({ userId }:TokenParams) => {
+export const globalRevokeKey = ({ userId }: TokenParams) => {
   return `user:globalRevoke:${userId}`;
 };
 
-export const set = async ({ key, value, ttl = null }:RedisSetParams):Promise<string | null> => {
+export const set = async ({
+  key,
+  value,
+  ttl = null,
+}: RedisSetParams): Promise<string | null> => {
   try {
     const data = typeof value != "string" ? JSON.stringify(value) : value;
     if (ttl) {
@@ -48,7 +53,7 @@ export const set = async ({ key, value, ttl = null }:RedisSetParams):Promise<str
   }
 };
 
-export const get = async ({ key }:{key:string}):Promise<string | null> => {
+export const get = async ({ key }: { key: string }): Promise<string | null> => {
   try {
     const data = await redisClient.get(key);
     return data;
@@ -58,7 +63,11 @@ export const get = async ({ key }:{key:string}):Promise<string | null> => {
   }
 };
 
-export const update = async ({ key, value, ttl = null }:RedisParams):Promise<string | boolean | null> => {
+export const update = async ({
+  key,
+  value,
+  ttl = null,
+}: RedisParams): Promise<string | boolean | null> => {
   try {
     const isExists = await redisClient.exists(key);
     if (!isExists) return false;
@@ -73,11 +82,14 @@ export const update = async ({ key, value, ttl = null }:RedisParams):Promise<str
   } catch (error) {
     console.log("Redis update error: ", error);
     return null;
-
   }
 };
 
-export const del = async ({ key }:{key: string}):Promise< boolean | number | null> => {
+export const del = async ({
+  key,
+}: {
+  key: string;
+}): Promise<boolean | number | null> => {
   try {
     const isExists = await redisClient.exists(key);
     if (!isExists) return false;
@@ -88,7 +100,7 @@ export const del = async ({ key }:{key: string}):Promise< boolean | number | nul
   }
 };
 
-export const expire = async ({ key, ttl }:{key: string; ttl:number}) => {
+export const expire = async ({ key, ttl }: { key: string; ttl: number }) => {
   try {
     const isExists = await redisClient.exists(key);
     if (!isExists) return false;
@@ -99,7 +111,11 @@ export const expire = async ({ key, ttl }:{key: string; ttl:number}) => {
   }
 };
 
-export const ttl = async ({ key }:{ key:string}):Promise<boolean | number | null> => {
+export const ttl = async ({
+  key,
+}: {
+  key: string;
+}): Promise<boolean | number | null> => {
   try {
     const isExists = await redisClient.exists(key);
     if (!isExists) return false;
@@ -110,11 +126,37 @@ export const ttl = async ({ key }:{ key:string}):Promise<boolean | number | null
   }
 };
 
-export const keys = async ({ pattern }:{ pattern: string}):Promise<string[] | null> => {
+export const keys = async ({
+  pattern,
+}: {
+  pattern: string;
+}): Promise<string[] | null> => {
   try {
     return await redisClient.keys(pattern);
   } catch (error) {
     console.log("Redis keys error: ", error);
     return null;
   }
+};
+
+export const FCM_key = (userId: Types.ObjectId | string) => {
+  return `user:FCM:${userId.toString()}`;
+};
+
+export const addFCM = async (
+  userId: Types.ObjectId | string,
+  FCMToken: string,
+) => {
+  return await redisClient.sAdd(FCM_key(userId), FCMToken);
+};
+
+export const removeFCM = async (
+  userId: Types.ObjectId | string,
+  FCMToken: string,
+) => {
+  return await redisClient.sRem(FCM_key(userId), FCMToken);
+};
+
+export const getFCMs = async (userId: Types.ObjectId | string) => {
+  return await redisClient.sMembers(FCM_key(userId));
 };

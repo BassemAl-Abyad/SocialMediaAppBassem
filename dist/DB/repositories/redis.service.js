@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.keys = exports.ttl = exports.expire = exports.del = exports.update = exports.get = exports.set = exports.globalRevokeKey = exports.revokeTokenKey = exports.revokeTokenKeyPrefix = void 0;
+exports.getFCMs = exports.removeFCM = exports.addFCM = exports.FCM_key = exports.keys = exports.ttl = exports.expire = exports.del = exports.update = exports.get = exports.set = exports.globalRevokeKey = exports.revokeTokenKey = exports.revokeTokenKeyPrefix = void 0;
 const redis_connection_js_1 = require("./redis.connection.js");
 const revokeTokenKeyPrefix = ({ userId }) => {
     return `user:revokeToken:${userId}`;
@@ -14,7 +14,7 @@ const globalRevokeKey = ({ userId }) => {
     return `user:globalRevoke:${userId}`;
 };
 exports.globalRevokeKey = globalRevokeKey;
-const set = async ({ key, value, ttl = null }) => {
+const set = async ({ key, value, ttl = null, }) => {
     try {
         const data = typeof value != "string" ? JSON.stringify(value) : value;
         if (ttl) {
@@ -43,7 +43,7 @@ const get = async ({ key }) => {
     }
 };
 exports.get = get;
-const update = async ({ key, value, ttl = null }) => {
+const update = async ({ key, value, ttl = null, }) => {
     try {
         const isExists = await redis_connection_js_1.redisClient.exists(key);
         if (!isExists)
@@ -64,7 +64,7 @@ const update = async ({ key, value, ttl = null }) => {
     }
 };
 exports.update = update;
-const del = async ({ key }) => {
+const del = async ({ key, }) => {
     try {
         const isExists = await redis_connection_js_1.redisClient.exists(key);
         if (!isExists)
@@ -90,7 +90,7 @@ const expire = async ({ key, ttl }) => {
     }
 };
 exports.expire = expire;
-const ttl = async ({ key }) => {
+const ttl = async ({ key, }) => {
     try {
         const isExists = await redis_connection_js_1.redisClient.exists(key);
         if (!isExists)
@@ -103,7 +103,7 @@ const ttl = async ({ key }) => {
     }
 };
 exports.ttl = ttl;
-const keys = async ({ pattern }) => {
+const keys = async ({ pattern, }) => {
     try {
         return await redis_connection_js_1.redisClient.keys(pattern);
     }
@@ -113,3 +113,19 @@ const keys = async ({ pattern }) => {
     }
 };
 exports.keys = keys;
+const FCM_key = (userId) => {
+    return `user:FCM:${userId.toString()}`;
+};
+exports.FCM_key = FCM_key;
+const addFCM = async (userId, FCMToken) => {
+    return await redis_connection_js_1.redisClient.sAdd((0, exports.FCM_key)(userId), FCMToken);
+};
+exports.addFCM = addFCM;
+const removeFCM = async (userId, FCMToken) => {
+    return await redis_connection_js_1.redisClient.sRem((0, exports.FCM_key)(userId), FCMToken);
+};
+exports.removeFCM = removeFCM;
+const getFCMs = async (userId) => {
+    return await redis_connection_js_1.redisClient.sMembers((0, exports.FCM_key)(userId));
+};
+exports.getFCMs = getFCMs;

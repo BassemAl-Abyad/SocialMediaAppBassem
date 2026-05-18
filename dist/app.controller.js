@@ -13,6 +13,7 @@ const error_response_1 = require("./Utils/response/error.response");
 const config_service_1 = require("./config/config.service");
 const connection_1 = __importDefault(require("./DB/connection"));
 const redis_connection_1 = require("./DB/repositories/redis.connection");
+const notification_service_1 = require("./Utils/services/notification.service");
 const bootstrap = async () => {
     const app = (0, express_1.default)();
     // Apply security middleware
@@ -22,6 +23,14 @@ const bootstrap = async () => {
     // Body parsing middleware
     app.use(express_1.default.json());
     app.use(express_1.default.urlencoded({ extended: true }));
+    // Notification test
+    notification_service_1.notification;
+    app.post("/send-notification", (req, res) => {
+        notification_service_1.notification.sendNotification({
+            token: req.body.token,
+            data: { title: "First Notification", body: "Body of notification!" },
+        });
+    });
     // DB connection
     await (0, connection_1.default)();
     await (0, redis_connection_1.redisConnection)();

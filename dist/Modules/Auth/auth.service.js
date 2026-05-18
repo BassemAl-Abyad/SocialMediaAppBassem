@@ -11,6 +11,7 @@ const auth_enum_1 = require("../../Utils/enums/auth.enum");
 const redis_service_1 = require("../../DB/repositories/redis.service");
 const config_service_1 = require("../../config/config.service");
 const google_auth_library_1 = require("google-auth-library");
+const notification_service_1 = require("../../Utils/services/notification.service");
 class AuthenticationService {
     _userRepo = new user_repo_1.UserRepository(user_model_1.UserModel);
     _tokenService;
@@ -40,19 +41,36 @@ class AuthenticationService {
                 },
             ],
         });
+        await email_events_1.emailEvents.emit("confirmEmail", {
+            to: email,
+            username,
+            otp,
+        });
         return res
             .status(201)
             .json({ message: "User created successfully.", data: { user } });
     };
     login = async (req, res) => {
-        const { email, password } = req.body;
+        const { email, password, FCM } = req.body;
         const user = await this._userRepo.findOne({
             filter: { email, confirmEmail: { $exists: true } },
         });
         if (!user)
-            throw new error_response_1.NotFoundException("User not found or already confirmed.");
+            throw new error_response_1.NotFoundException("User not found or email not confirmed yet.");
         if (!(await (0, hash_1.compareHash)(password, user.password)))
             throw new error_response_1.BadRequestException("Invalid email or password.");
+        if (FCM) {
+            await (0, redis_service_1.addFCM)(user._id, FCM);
+            const tokens = await (0, redis_service_1.getFCMs)(user._id);
+            if (tokens?.length) {
+                notification_service_1.notification
+                    .sendNotifications({
+                    tokens,
+                    data: { title: "Login", body: `New Login at ${Date.now()}` },
+                })
+                    .catch((error) => console.error("Notification error:", error));
+            }
+        }
         const credentials = await this._tokenService.getNewLoginCredentials(user);
         return res
             .status(201)

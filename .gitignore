@@ -1,0 +1,2 @@
+# Ignore Firebase Admin SDK service accounts
+src/config/*-firebase-adminsdk-*.json

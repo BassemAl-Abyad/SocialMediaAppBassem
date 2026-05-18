@@ -3,7 +3,7 @@ import { Express } from "express";
 import helmet from "helmet";
 import { corsMiddleware } from "./Utils/cors/cors.utils";
 import { generalLimiter } from "./Utils/rateLimiter/rateLimiter";
-import { AuthRouter, CommentRouter, PostRouter, UserRouter } from "./Modules";
+import { AuthRouter, PostRouter, UserRouter } from "./Modules";
 import {
   globalErrorHandler,
   NotFoundException,
@@ -38,19 +38,11 @@ export const bootstrap = async () => {
   await connectDB();
   await redisConnection();
 
-  // Main route
-  app.get("/", (req: Request, res: Response, next: NextFunction): Response => {
-    return res
-      .status(200)
-      .json({ message: "Welcome to Social Media App by Bassem." });
-  });
-
   // All routes
   app.use(`/api/auth`, AuthRouter);
   app.use(`/api/user`, UserRouter);
   app.use(`/api/post`, PostRouter);
-  app.use(`/api/comment`, CommentRouter);
-
+  
   // Not found route
   app.use("{/*dummy}", (req: Request, res: Response): Response => {
     throw new NotFoundException("Handler not found!");

@@ -7,8 +7,10 @@ import {
 import postService from "./post.service";
 import * as postValidation from "./post.validation";
 import { validation } from "../../Middleware/validation.middleware";
+import { CommentRouter } from "../index";
 
 const router: Router = Router();
+router.use("/:postId/comment", CommentRouter);
 
 router.post(
   "/create",

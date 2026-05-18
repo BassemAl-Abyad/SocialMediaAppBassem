@@ -46,6 +46,25 @@ export abstract class DatabaseRepository<TDocument> {
     return await doc.exec();
   }
 
+  async find({
+    filter,
+    select,
+    options,
+  }: {
+    filter: QueryFilter<TDocument>;
+    select?: ProjectionType<TDocument> | null;
+    options?: QueryOptions<TDocument> | null;
+  }) {
+    const doc = this.model.find(filter).select(select || "");
+    if (options?.populate) {
+      doc.populate(options.populate as PopulateOptions[]);
+    }
+    if (options?.skip) doc.skip(options.skip);
+    if (options?.limit) doc.skip(options.limit);
+
+    return await doc.exec();
+  }
+
   async create({
     data,
     options,
@@ -56,27 +75,23 @@ export abstract class DatabaseRepository<TDocument> {
     return await this.model.create(data as any, options);
   }
 
-    async insertMany({
-    data,
-  }: {
-    data: AnyKeys<TDocument>[];
-  }) {
+  async insertMany({ data }: { data: AnyKeys<TDocument>[] }) {
     return await this.model.insertMany(data as any);
   }
 
   async updateOne({
-  filter,
-  update,
-  options,
-}: {
-  filter: QueryFilter<TDocument>;
-  update: UpdateQuery<TDocument>;
-  options?: MongooseUpdateQueryOptions<TDocument> | null;
-}): Promise<UpdateWriteOpResult> {
-  return await this.model.updateOne(
     filter,
-    { ...update, $inc: { __v: 1 } },
+    update,
     options,
-  );
-}
+  }: {
+    filter: QueryFilter<TDocument>;
+    update: UpdateQuery<TDocument>;
+    options?: MongooseUpdateQueryOptions<TDocument> | null;
+  }): Promise<UpdateWriteOpResult> {
+    return await this.model.updateOne(
+      filter,
+      { ...update, $inc: { __v: 1 } },
+      options,
+    );
+  }
 }

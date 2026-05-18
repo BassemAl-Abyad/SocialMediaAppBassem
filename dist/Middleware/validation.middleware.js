@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.generalFields = exports.validation = void 0;
 const zod_1 = __importDefault(require("zod"));
 const error_response_1 = require("../Utils/response/error.response");
+const mongoose_1 = require("mongoose");
 const validation = (schema) => {
     return (req, res, next) => {
         const validationError = [];
@@ -50,4 +51,18 @@ exports.generalFields = {
     })
         .optional(),
     otp: zod_1.default.string().regex(/^\d{6}$/),
+    file: function (mimeType) {
+        return zod_1.default.strictObject({
+            fieldname: zod_1.default.string(),
+            originalname: zod_1.default.string(),
+            encoding: zod_1.default.string(),
+            mimeType: zod_1.default.enum(mimeType),
+            buffer: zod_1.default.any().optional(),
+            path: zod_1.default.string().optional(),
+            size: zod_1.default.number(),
+        });
+    },
+    id: zod_1.default.string().refine((value) => {
+        return mongoose_1.Types.ObjectId.isValid(value);
+    }, "Invalid ID format"),
 };

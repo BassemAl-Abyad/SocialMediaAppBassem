@@ -10,7 +10,7 @@ import * as postValidation from "./post.validation";
 const router: Router = Router();
 
 router.post(
-  "/",
+  "/create",
   authentication({ tokenType: TokenTypeEnum.ACCESS }),
   authorization({ accessRoles: [RoleEnum.USER] }),
   postService.createPost,

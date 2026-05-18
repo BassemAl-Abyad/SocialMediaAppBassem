@@ -48,8 +48,8 @@ export const bootstrap = async () => {
   // All routes
   app.use(`/api/auth`, AuthRouter);
   app.use(`/api/user`, UserRouter);
-  app.use(`/api/posts`, PostRouter);
-  app.use(`/api/comments`, CommentRouter);
+  app.use(`/api/post`, PostRouter);
+  app.use(`/api/comment`, CommentRouter);
 
   // Not found route
   app.use("{/*dummy}", (req: Request, res: Response): Response => {

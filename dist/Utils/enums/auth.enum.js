@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ProviderEnum = exports.LogoutTypeEnum = exports.TokenTypeEnum = exports.SignatureEnum = exports.RoleEnum = exports.GenderEnum = void 0;
+exports.AvailabilityEnum = exports.ProviderEnum = exports.LogoutTypeEnum = exports.TokenTypeEnum = exports.SignatureEnum = exports.RoleEnum = exports.GenderEnum = void 0;
 var GenderEnum;
 (function (GenderEnum) {
     GenderEnum["MALE"] = "MALE";
@@ -31,3 +31,9 @@ var ProviderEnum;
     ProviderEnum["SYSTEM"] = "SYSTEM";
     ProviderEnum["GOOGLE"] = "GOOGLE";
 })(ProviderEnum || (exports.ProviderEnum = ProviderEnum = {}));
+var AvailabilityEnum;
+(function (AvailabilityEnum) {
+    AvailabilityEnum[AvailabilityEnum["PUBLIC"] = 0] = "PUBLIC";
+    AvailabilityEnum[AvailabilityEnum["FRIENDS"] = 1] = "FRIENDS";
+    AvailabilityEnum[AvailabilityEnum["ONLY_ME"] = 2] = "ONLY_ME";
+})(AvailabilityEnum || (exports.AvailabilityEnum = AvailabilityEnum = {}));

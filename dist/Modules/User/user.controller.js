@@ -44,6 +44,10 @@ const validation_middleware_1 = require("../../Middleware/validation.middleware"
 const userValidation = __importStar(require("./user.validation"));
 const router = (0, express_1.Router)();
 router.get("/profile", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), user_service_1.default.getProfile);
-router.patch("/profile", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, validation_middleware_1.validation)(userValidation.updateProfileSchema), user_service_1.default.updateProfile);
+router.patch("/profile", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, validation_middleware_1.validation)(userValidation.updateProfileSchema), async (req, res) => {
+    const user = req.user;
+    const data = await user_service_1.default.getProfile(user.id);
+    return res.status(200).json({ message: "Done", data });
+});
 router.get("/:userId", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, validation_middleware_1.validation)(userValidation.getUserSchema), user_service_1.default.getUserById);
 exports.default = router;

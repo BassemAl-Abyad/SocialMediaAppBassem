@@ -104,10 +104,10 @@ class NotificationCrudService {
   markNotificationRead = async (req: Request, res: Response) => {
     const { notificationId } = req.params as { notificationId: string };
     const { markRead } = req.query as { markRead?: string };
-    const notification = await NotificationModel.findOne({
+    const notification = (await NotificationModel.findOne({
       _id: notificationId,
       recipients: { $in: [req.user._id] },
-    });
+    })) as any;
     if (!notification) throw new NotFoundException("Notification not found.");
 
     if (markRead === "false") {

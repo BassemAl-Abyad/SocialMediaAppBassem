@@ -43,7 +43,9 @@ class PostService {
         }
         const tagged = taggedUsers.map((user) => user._id);
         const tokendResults = await Promise.all(tags.map((tag) => (0, redis_service_1.getFCMs)(tag)));
-        const FCM_Tokens = [...new Set(tokendResults.flat().filter((token) => Boolean(token)))];
+        const FCM_Tokens = [
+            ...new Set(tokendResults.flat().filter((token) => Boolean(token))),
+        ];
         const [post] = (await this._postRepo.create({
             data: [
                 {
@@ -67,7 +69,9 @@ class PostService {
                 },
             });
         }
-        return res.status(201).json({ message: "Post created successfully.", data: post });
+        return res
+            .status(201)
+            .json({ message: "Post created successfully.", data: post });
     };
     getFeed = async (req, res) => {
         const page = Number(req.query.page ?? 1);
@@ -83,7 +87,10 @@ class PostService {
             },
             options: {
                 populate: [
-                    { path: "createdBy", select: "firstName lastName username ProfilePic" },
+                    {
+                        path: "createdBy",
+                        select: "firstName lastName username ProfilePic",
+                    },
                     { path: "tags", select: "firstName lastName username ProfilePic" },
                 ],
                 skip,
@@ -95,8 +102,12 @@ class PostService {
             .json({ message: "Feed loaded successfully.", data: posts });
     };
     getDashboard = async (req, res) => {
-        const totalPosts = await post_model_1.PostModel.countDocuments({ createdBy: req.user._id });
-        const totalComments = await comment_model_1.CommentModel.countDocuments({ createdBy: req.user._id });
+        const totalPosts = await post_model_1.PostModel.countDocuments({
+            createdBy: req.user._id,
+        });
+        const totalComments = await comment_model_1.CommentModel.countDocuments({
+            createdBy: req.user._id,
+        });
         const recentPosts = await this._postRepo.find({
             filter: { createdBy: req.user._id },
             options: {
@@ -142,12 +153,17 @@ class PostService {
             },
             options: {
                 populate: [
-                    { path: "createdBy", select: "firstName lastName username ProfilePic" },
+                    {
+                        path: "createdBy",
+                        select: "firstName lastName username ProfilePic",
+                    },
                     { path: "tags", select: "firstName lastName username ProfilePic" },
                 ],
             },
         });
-        return res.status(200).json({ message: "Profile posts fetched.", data: posts });
+        return res
+            .status(200)
+            .json({ message: "Profile posts fetched.", data: posts });
     };
     getPost = async (req, res) => {
         const { postId } = req.params;
@@ -158,7 +174,10 @@ class PostService {
             },
             options: {
                 populate: [
-                    { path: "createdBy", select: "firstName lastName username ProfilePic" },
+                    {
+                        path: "createdBy",
+                        select: "firstName lastName username ProfilePic",
+                    },
                     { path: "tags", select: "firstName lastName username ProfilePic" },
                 ],
             },
@@ -184,18 +203,25 @@ class PostService {
                 content,
                 attachments,
                 availability,
-                tags: tags.length ? tags.map((id) => new mongoose_1.Types.ObjectId(id)) : post.tags,
+                tags: tags.length
+                    ? tags.map((id) => new mongoose_1.Types.ObjectId(id))
+                    : post.tags,
             },
             options: { new: true },
         });
-        return res.status(200).json({ message: "Post updated.", data: updatedPost });
+        return res
+            .status(200)
+            .json({ message: "Post updated.", data: updatedPost });
     };
     deletePost = async (req, res) => {
         const { postId } = req.params;
-        const post = (await this._postRepo.findOne({ filter: { _id: postId } }));
+        const post = (await this._postRepo.findOne({
+            filter: { _id: postId },
+        }));
         if (!post)
             throw new error_response_1.NotFoundException("Post not found.");
-        if (post.createdBy.toString() !== req.user._id.toString() && req.user.role !== auth_enum_1.RoleEnum.ADMIN) {
+        if (post.createdBy.toString() !== req.user._id.toString() &&
+            req.user.role !== auth_enum_1.RoleEnum.ADMIN) {
             throw new error_response_1.ForbiddenException("You may only delete your own post.");
         }
         await post.softDelete();
@@ -209,7 +235,8 @@ class PostService {
         }));
         if (!post)
             throw new error_response_1.NotFoundException("Post not found.");
-        if (post.createdBy.toString() !== req.user._id.toString() && req.user.role !== auth_enum_1.RoleEnum.ADMIN) {
+        if (post.createdBy.toString() !== req.user._id.toString() &&
+            req.user.role !== auth_enum_1.RoleEnum.ADMIN) {
             throw new error_response_1.ForbiddenException("You may only restore your own post.");
         }
         await post.restore();
@@ -217,7 +244,9 @@ class PostService {
     };
     hardDeletePost = async (req, res) => {
         const { postId } = req.params;
-        const post = (await post_model_1.PostModel.findOne({ _id: postId }).setOptions({ includeDeleted: true }));
+        const post = (await post_model_1.PostModel.findOne({ _id: postId }).setOptions({
+            includeDeleted: true,
+        }));
         if (!post)
             throw new error_response_1.NotFoundException("Post not found.");
         await post.hardDelete();
@@ -255,7 +284,20 @@ class PostService {
             });
         }
         const updatedPost = await post.save();
-        return res.status(200).json({ message: "Reaction updated successfully.", data: updatedPost });
+        return res
+            .status(200)
+            .json({ message: "Reaction updated successfully.", data: updatedPost });
     };
+    async getPosts(user) {
+        const posts = await this._postRepo.find({
+            filter: {
+                $or: (0, exports.getAvailability)(user),
+            },
+            options: {
+                populate: [{ path: "createdBy" }, { path: "comments" }],
+            },
+        });
+        return posts;
+    }
 }
 exports.default = new PostService();

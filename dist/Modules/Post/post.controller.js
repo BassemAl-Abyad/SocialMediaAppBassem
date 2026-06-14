@@ -56,4 +56,8 @@ router.delete("/:postId", (0, authentication_middleware_1.authentication)({ toke
 router.patch("/:postId/restore", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, authentication_middleware_1.authorization)({ accessRoles: [auth_enum_1.RoleEnum.USER, auth_enum_1.RoleEnum.ADMIN] }), post_service_1.default.restorePost);
 router.delete("/:postId/hard", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, authentication_middleware_1.authorization)({ accessRoles: [auth_enum_1.RoleEnum.ADMIN] }), post_service_1.default.hardDeletePost);
 router.patch("/:postId/react", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, authentication_middleware_1.authorization)({ accessRoles: [auth_enum_1.RoleEnum.USER, auth_enum_1.RoleEnum.ADMIN] }), (0, validation_middleware_1.validation)(postValidation.reactPostSchema), post_service_1.default.reactPost);
+router.get("/", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), async (req, res) => {
+    const data = await post_service_1.default.getPosts(req.user);
+    return res.status(200).json({ message: "Posts retrieved successfully", data });
+});
 exports.default = router;

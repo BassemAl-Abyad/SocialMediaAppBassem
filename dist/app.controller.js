@@ -14,6 +14,10 @@ const config_service_1 = require("./config/config.service");
 const connection_1 = __importDefault(require("./DB/connection"));
 const redis_connection_1 = require("./DB/repositories/redis.connection");
 const notification_service_1 = require("./Utils/services/notification.service");
+const authentication_middleware_1 = require("./Middleware/authentication.middleware");
+const express_2 = require("graphql-http/lib/use/express");
+const schema_gql_1 = require("./Modules/graphql/schema.gql");
+const auth_enum_1 = require("./Utils/enums/auth.enum");
 const bootstrap = async () => {
     const app = (0, express_1.default)();
     // Apply security middleware
@@ -41,7 +45,10 @@ const bootstrap = async () => {
     app.use(`/api/story`, Modules_1.StoryRouter);
     app.use(`/api/notification`, Modules_1.NotificationRouter);
     // Graphql
-    app.all(`/graphql`, Modules_1.graphqlHandler);
+    app.all("/graphql", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, express_2.createHandler)({
+        schema: schema_gql_1.schema,
+        context: (req) => ({ user: req.raw.user, decoded: req.raw.decoded }),
+    }));
     // Not found route
     app.use((req, res) => {
         throw new error_response_1.NotFoundException("Handler not found!");

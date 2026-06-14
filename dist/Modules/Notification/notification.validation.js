@@ -11,7 +11,7 @@ exports.createNotificationSchema = {
         title: zod_1.default.string().min(1),
         body: zod_1.default.string().min(1),
         recipients: zod_1.default.array(validation_middleware_1.generalFields.id).min(1),
-        data: zod_1.default.record(zod_1.default.any()).optional(),
+        data: zod_1.default.record(zod_1.default.string(), zod_1.default.any()).optional(),
     }),
 };
 exports.updateNotificationSchema = {
@@ -23,7 +23,7 @@ exports.updateNotificationSchema = {
         title: zod_1.default.string().min(1).optional(),
         body: zod_1.default.string().min(1).optional(),
         recipients: zod_1.default.array(validation_middleware_1.generalFields.id).optional(),
-        data: zod_1.default.record(zod_1.default.any()).optional(),
+        data: zod_1.default.record(zod_1.default.string(), zod_1.default.any()).optional(),
     })
         .refine((data) => Object.keys(data).length > 0, {
         message: "At least one field must be provided to update.",

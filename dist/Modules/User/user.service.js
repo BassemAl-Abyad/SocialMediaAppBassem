@@ -6,8 +6,11 @@ const error_response_1 = require("../../Utils/response/error.response");
 class UserService {
     _userRepo = new user_repo_1.UserRepository(user_model_1.UserModel);
     constructor() { }
-    getProfile = async (req, res) => {
-        return res.status(200).json({ message: "Profile loaded.", data: req.user });
+    getProfile = async (user) => {
+        return {
+            message: "User Profile",
+            data: user,
+        };
     };
     updateProfile = async (req, res) => {
         const updates = req.body;

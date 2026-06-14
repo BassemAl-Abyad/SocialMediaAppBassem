@@ -1,6 +1,12 @@
-import { model, Schema, Types } from "mongoose";
+import { HydratedDocument, model, Schema, Types, Model } from "mongoose";
 import { IUser } from "./user.model";
 import { AvailabilityEnum } from "../../Utils/enums/auth.enum";
+
+export interface IStoryMethods {
+  softDelete(): Promise<HydratedDocument<IStory, IStoryMethods>>;
+  restore(): Promise<HydratedDocument<IStory, IStoryMethods>>;
+  hardDelete(): Promise<any>;
+}
 
 export interface IStory {
   content?: string;
@@ -15,7 +21,7 @@ export interface IStory {
   updatedAt: Date;
 }
 
-const storySchema = new Schema<IStory>(
+const storySchema = new Schema<IStory, Model<IStory, {}, IStoryMethods>, IStoryMethods>(
   {
     content: String,
     attachments: [String],
@@ -70,4 +76,4 @@ storySchema.methods.hardDelete = async function () {
   return await this.deleteOne();
 };
 
-export const StoryModel = model<IStory>("Story", storySchema);
+export const StoryModel = model<IStory, Model<IStory, {}, IStoryMethods>>("Story", storySchema);

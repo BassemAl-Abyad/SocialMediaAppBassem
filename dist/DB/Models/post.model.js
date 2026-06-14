@@ -73,4 +73,9 @@ postSchema.methods.hardDelete = async function () {
     await Comment.deleteMany({ postId: this._id });
     return await this.deleteOne();
 };
+postSchema.virtual("comments", {
+    localField: "_id",
+    foreignField: "postId",
+    ref: "Comment",
+});
 exports.PostModel = (0, mongoose_1.model)("Post", postSchema);

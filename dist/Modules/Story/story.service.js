@@ -97,7 +97,7 @@ class StoryService {
     };
     deleteStory = async (req, res) => {
         const { storyId } = req.params;
-        const story = await this._storyRepo.findOne({ filter: { _id: storyId } });
+        const story = (await this._storyRepo.findOne({ filter: { _id: storyId } }));
         if (!story)
             throw new error_response_1.NotFoundException("Story not found.");
         if (story.createdBy.toString() !== req.user._id.toString()) {
@@ -108,7 +108,7 @@ class StoryService {
     };
     restoreStory = async (req, res) => {
         const { storyId } = req.params;
-        const story = await story_model_1.StoryModel.findOne({ _id: storyId, deletedAt: { $exists: true } }).setQuery({ includeDeleted: true });
+        const story = (await story_model_1.StoryModel.findOne({ _id: storyId, deletedAt: { $exists: true } }).setOptions({ includeDeleted: true }));
         if (!story)
             throw new error_response_1.NotFoundException("Story not found.");
         if (story.createdBy.toString() !== req.user._id.toString()) {
@@ -119,7 +119,7 @@ class StoryService {
     };
     hardDeleteStory = async (req, res) => {
         const { storyId } = req.params;
-        const story = await story_model_1.StoryModel.findOne({ _id: storyId }).setQuery({ includeDeleted: true });
+        const story = (await story_model_1.StoryModel.findOne({ _id: storyId }).setOptions({ includeDeleted: true }));
         if (!story)
             throw new error_response_1.NotFoundException("Story not found.");
         await story.hardDelete();

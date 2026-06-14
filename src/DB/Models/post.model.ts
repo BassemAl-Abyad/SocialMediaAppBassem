@@ -113,4 +113,10 @@ postSchema.methods.hardDelete = async function () {
   return await this.deleteOne();
 };
 
+postSchema.virtual("comments", {
+    localField: "_id",
+    foreignField: "postId",
+    ref: "Comment",
+});
+
 export const PostModel = model<IPost>("Post", postSchema);

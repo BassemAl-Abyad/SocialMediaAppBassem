@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import { RoleEnum, TokenTypeEnum } from "../../Utils/enums/auth.enum";
 import {
   authentication,
@@ -85,6 +85,15 @@ router.patch(
   authorization({ accessRoles: [RoleEnum.USER, RoleEnum.ADMIN] }),
   validation(postValidation.reactPostSchema),
   postService.reactPost,
+);
+
+router.get(
+    "/",
+    authentication({ tokenType: TokenTypeEnum.ACCESS }),
+    async (req: Request, res: Response) => {
+        const data = await postService.getPosts(req.user);
+        return res.status(200).json({ message: "Posts retrieved successfully", data });
+    },
 );
 
 export default router;

@@ -1,5 +1,10 @@
-import { model, Schema, Types } from "mongoose";
+import { HydratedDocument, model, Schema, Types, Model } from "mongoose";
 import { IUser } from "./user.model";
+
+export interface INotificationMethods {
+  markAsRead(userId: Types.ObjectId | string): Promise<HydratedDocument<INotification, INotificationMethods>>;
+  markAsUnread(userId: Types.ObjectId | string): Promise<HydratedDocument<INotification, INotificationMethods>>;
+}
 
 export interface INotification {
   title: string;
@@ -15,7 +20,7 @@ export interface INotification {
   updatedAt: Date;
 }
 
-const notificationSchema = new Schema<INotification>(
+const notificationSchema = new Schema<INotification, Model<INotification, {}, INotificationMethods>, INotificationMethods>(
   {
     title: { type: String, required: true },
     body: { type: String, required: true },

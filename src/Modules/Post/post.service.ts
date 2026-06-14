@@ -7,7 +7,10 @@ import { NotificationService } from "../../Utils/services/notification.service";
 import { HUserDocument, UserModel } from "../../DB/Models/user.model";
 import { PostModel } from "../../DB/Models/post.model";
 import { CommentModel } from "../../DB/Models/comment.model";
-import { NotFoundException, ForbiddenException } from "../../Utils/response/error.response";
+import {
+  NotFoundException,
+  ForbiddenException,
+} from "../../Utils/response/error.response";
 import { AvailabilityEnum, RoleEnum } from "../../Utils/enums/auth.enum";
 import { Types } from "mongoose";
 import { getFCMs } from "../../DB/repositories/redis.service";
@@ -51,8 +54,14 @@ class PostService {
 
     const tagged = taggedUsers.map((user) => user._id as Types.ObjectId);
 
-    const tokendResults = await Promise.all(tags.map((tag: string) => getFCMs(tag)));
-    const FCM_Tokens = [...new Set(tokendResults.flat().filter((token): token is string => Boolean(token)))];
+    const tokendResults = await Promise.all(
+      tags.map((tag: string) => getFCMs(tag)),
+    );
+    const FCM_Tokens = [
+      ...new Set(
+        tokendResults.flat().filter((token): token is string => Boolean(token)),
+      ),
+    ];
 
     const [post] =
       (await this._postRepo.create({
@@ -80,7 +89,9 @@ class PostService {
       });
     }
 
-    return res.status(201).json({ message: "Post created successfully.", data: post });
+    return res
+      .status(201)
+      .json({ message: "Post created successfully.", data: post });
   };
 
   getFeed = async (req: Request, res: Response): Promise<Response> => {
@@ -98,7 +109,10 @@ class PostService {
       },
       options: {
         populate: [
-          { path: "createdBy", select: "firstName lastName username ProfilePic" },
+          {
+            path: "createdBy",
+            select: "firstName lastName username ProfilePic",
+          },
           { path: "tags", select: "firstName lastName username ProfilePic" },
         ],
         skip,
@@ -112,8 +126,12 @@ class PostService {
   };
 
   getDashboard = async (req: Request, res: Response): Promise<Response> => {
-    const totalPosts = await PostModel.countDocuments({ createdBy: req.user._id });
-    const totalComments = await CommentModel.countDocuments({ createdBy: req.user._id });
+    const totalPosts = await PostModel.countDocuments({
+      createdBy: req.user._id,
+    });
+    const totalComments = await CommentModel.countDocuments({
+      createdBy: req.user._id,
+    });
     const recentPosts = await this._postRepo.find({
       filter: { createdBy: req.user._id },
       options: {
@@ -162,13 +180,18 @@ class PostService {
       },
       options: {
         populate: [
-          { path: "createdBy", select: "firstName lastName username ProfilePic" },
+          {
+            path: "createdBy",
+            select: "firstName lastName username ProfilePic",
+          },
           { path: "tags", select: "firstName lastName username ProfilePic" },
         ],
       },
     });
 
-    return res.status(200).json({ message: "Profile posts fetched.", data: posts });
+    return res
+      .status(200)
+      .json({ message: "Profile posts fetched.", data: posts });
   };
 
   getPost = async (req: Request, res: Response): Promise<Response> => {
@@ -180,7 +203,10 @@ class PostService {
       },
       options: {
         populate: [
-          { path: "createdBy", select: "firstName lastName username ProfilePic" },
+          {
+            path: "createdBy",
+            select: "firstName lastName username ProfilePic",
+          },
           { path: "tags", select: "firstName lastName username ProfilePic" },
         ],
       },
@@ -207,19 +233,28 @@ class PostService {
         content,
         attachments,
         availability,
-        tags: tags.length ? tags.map((id: string) => new Types.ObjectId(id)) : post.tags,
+        tags: tags.length
+          ? tags.map((id: string) => new Types.ObjectId(id))
+          : post.tags,
       },
       options: { new: true },
     });
 
-    return res.status(200).json({ message: "Post updated.", data: updatedPost });
+    return res
+      .status(200)
+      .json({ message: "Post updated.", data: updatedPost });
   };
 
   deletePost = async (req: Request, res: Response): Promise<Response> => {
     const { postId } = req.params as { postId: string };
-    const post = (await this._postRepo.findOne({ filter: { _id: postId } })) as any;
+    const post = (await this._postRepo.findOne({
+      filter: { _id: postId },
+    })) as any;
     if (!post) throw new NotFoundException("Post not found.");
-    if (post.createdBy.toString() !== req.user._id.toString() && req.user.role !== RoleEnum.ADMIN) {
+    if (
+      post.createdBy.toString() !== req.user._id.toString() &&
+      req.user.role !== RoleEnum.ADMIN
+    ) {
       throw new ForbiddenException("You may only delete your own post.");
     }
     await post.softDelete();
@@ -233,7 +268,10 @@ class PostService {
       deletedAt: { $exists: true },
     })) as any;
     if (!post) throw new NotFoundException("Post not found.");
-    if (post.createdBy.toString() !== req.user._id.toString() && req.user.role !== RoleEnum.ADMIN) {
+    if (
+      post.createdBy.toString() !== req.user._id.toString() &&
+      req.user.role !== RoleEnum.ADMIN
+    ) {
       throw new ForbiddenException("You may only restore your own post.");
     }
     await post.restore();
@@ -242,7 +280,9 @@ class PostService {
 
   hardDeletePost = async (req: Request, res: Response): Promise<Response> => {
     const { postId } = req.params as { postId: string };
-    const post = (await PostModel.findOne({ _id: postId }).setOptions({ includeDeleted: true })) as any;
+    const post = (await PostModel.findOne({ _id: postId }).setOptions({
+      includeDeleted: true,
+    })) as any;
     if (!post) throw new NotFoundException("Post not found.");
     await post.hardDelete();
     return res.status(200).json({ message: "Post permanently removed." });
@@ -282,8 +322,22 @@ class PostService {
     }
 
     const updatedPost = await post.save();
-    return res.status(200).json({ message: "Reaction updated successfully.", data: updatedPost });
+    return res
+      .status(200)
+      .json({ message: "Reaction updated successfully.", data: updatedPost });
   };
+
+  async getPosts(user: HUserDocument) {
+    const posts = await this._postRepo.find({
+      filter: {
+        $or: getAvailability(user),
+      },
+      options: {
+        populate: [{ path: "createdBy" }, {path: "comments"}],
+      },
+    });
+    return posts;
+  }
 }
 
 export default new PostService();

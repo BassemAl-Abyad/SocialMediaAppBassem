@@ -6,7 +6,7 @@ export const createNotificationSchema = {
     title: z.string().min(1),
     body: z.string().min(1),
     recipients: z.array(generalFields.id).min(1),
-    data: z.record(z.any()).optional(),
+    data: z.record(z.string(), z.any()).optional(),
   }),
 };
 
@@ -19,7 +19,7 @@ export const updateNotificationSchema = {
       title: z.string().min(1).optional(),
       body: z.string().min(1).optional(),
       recipients: z.array(generalFields.id).optional(),
-      data: z.record(z.any()).optional(),
+      data: z.record(z.string(), z.any()).optional(),
     })
     .refine((data) => Object.keys(data).length > 0, {
       message: "At least one field must be provided to update.",

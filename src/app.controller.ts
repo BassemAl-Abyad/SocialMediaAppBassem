@@ -19,6 +19,10 @@ import { PORT } from "./config/config.service";
 import connectDB from "./DB/connection";
 import { redisConnection } from "./DB/repositories/redis.connection";
 import { notification } from "./Utils/services/notification.service";
+import { authentication } from "./Middleware/authentication.middleware";
+import { createHandler } from "graphql-http/lib/use/express";
+import { schema } from "./Modules/graphql/schema.gql";
+import { TokenTypeEnum } from "./Utils/enums/auth.enum";
 
 export const bootstrap = async () => {
   const app: Express = express();
@@ -53,7 +57,14 @@ export const bootstrap = async () => {
   app.use(`/api/notification`, NotificationRouter);
 
   // Graphql
-  app.all(`/graphql`, graphqlHandler);
+  app.all(
+    "/graphql",
+    authentication({ tokenType: TokenTypeEnum.ACCESS }),
+    createHandler({
+        schema: schema,
+        context: (req) => ({ user: req.raw.user, decoded: req.raw.decoded }),
+    }),
+);
 
   // Not found route
   app.use((req: Request, res: Response) => {

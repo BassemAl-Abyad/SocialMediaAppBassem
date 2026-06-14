@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import { authentication } from "../../Middleware/authentication.middleware";
 import { TokenTypeEnum } from "../../Utils/enums/auth.enum";
 import userService from "./user.service";
@@ -17,7 +17,11 @@ router.patch(
   "/profile",
   authentication({ tokenType: TokenTypeEnum.ACCESS }),
   validation(userValidation.updateProfileSchema),
-  userService.updateProfile,
+  async (req: Request, res: Response) => {
+    const user = req.user;
+    const data = await userService.getProfile(user.id);
+    return res.status(200).json({ message: "Done", data });
+  },
 );
 
 router.get(

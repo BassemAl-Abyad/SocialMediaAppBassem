@@ -8,8 +8,11 @@ class UserService {
 
   constructor() {}
 
-  getProfile = async (req: Request, res: Response) => {
-    return res.status(200).json({ message: "Profile loaded.", data: req.user });
+  getProfile = async (user: any) => {
+    return {
+      message: "User Profile",
+      data: user,
+    };
   };
 
   updateProfile = async (req: Request, res: Response) => {

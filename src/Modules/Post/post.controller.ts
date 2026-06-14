@@ -33,7 +33,13 @@ router.get(
 );
 
 router.get(
-  "/profile/:userId?",
+  "/profile",
+  authentication({ tokenType: TokenTypeEnum.ACCESS }),
+  postService.getProfilePosts,
+);
+
+router.get(
+  "/profile/:userId",
   authentication({ tokenType: TokenTypeEnum.ACCESS }),
   postService.getProfilePosts,
 );

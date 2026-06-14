@@ -14,6 +14,8 @@ const config_service_1 = require("./config/config.service");
 const connection_1 = __importDefault(require("./DB/connection"));
 const redis_connection_1 = require("./DB/repositories/redis.connection");
 const notification_service_1 = require("./Utils/services/notification.service");
+const graphql_1 = require("graphql");
+const express_2 = require("graphql-http/lib/use/express");
 const bootstrap = async () => {
     const app = (0, express_1.default)();
     // Apply security middleware
@@ -34,19 +36,96 @@ const bootstrap = async () => {
     // DB connection
     await (0, connection_1.default)();
     await (0, redis_connection_1.redisConnection)();
-    // Main route
-    app.get("/", (req, res, next) => {
-        return res
-            .status(200)
-            .json({ message: "Welcome to Social Media App by Bassem." });
-    });
     // All routes
     app.use(`/api/auth`, Modules_1.AuthRouter);
     app.use(`/api/user`, Modules_1.UserRouter);
     app.use(`/api/post`, Modules_1.PostRouter);
-    app.use(`/api/comment`, Modules_1.CommentRouter);
+    app.use(`/api/story`, Modules_1.StoryRouter);
+    app.use(`/api/notification`, Modules_1.NotificationRouter);
+    // Graphql
+    const schema = new graphql_1.GraphQLSchema({
+        query: new graphql_1.GraphQLObjectType({
+            name: "RootQueryType",
+            description: "First description optional",
+            fields: {
+                sayHi: {
+                    type: graphql_1.GraphQLString,
+                    resolve() {
+                        return "Hello From GraphQL API";
+                    },
+                },
+                hello: {
+                    type: new graphql_1.GraphQLObjectType({
+                        name: "Hello",
+                        description: "Second description",
+                        fields: {
+                            sayHi2: {
+                                type: graphql_1.GraphQLFloat,
+                                resolve: () => {
+                                    return 22.5;
+                                },
+                            },
+                            sayHi3: {
+                                type: graphql_1.GraphQLString,
+                                resolve: () => {
+                                    return "Hello From SayHi3";
+                                },
+                            },
+                        },
+                    }),
+                    resolve() {
+                        return { message: "Hello From Hello Object Type" };
+                    },
+                },
+            },
+        }),
+        mutation: new graphql_1.GraphQLObjectType({
+            name: "GraphQLMutation",
+            description: "Mutation Description",
+            fields: {
+                welcome: {
+                    type: new graphql_1.GraphQLObjectType({
+                        name: "welcome",
+                        description: "Welcome Mutation",
+                        fields: {
+                            message: { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) },
+                        },
+                    }),
+                    resolve: () => {
+                        return { message: "Welcome from mutation" };
+                    },
+                },
+                welcome2: {
+                    type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString),
+                    args: {
+                        searchKey: {
+                            type: graphql_1.GraphQLString,
+                            description: "Search Key",
+                        },
+                        name: {
+                            type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString),
+                            description: "Name Key",
+                        },
+                        data: {
+                            type: new graphql_1.GraphQLInputObjectType({
+                                name: "inputs",
+                                fields: {
+                                    match: { type: graphql_1.GraphQLBoolean },
+                                },
+                            }),
+                            description: "Data Key",
+                        },
+                    },
+                    resolve: (_parent, args) => {
+                        return `Welcome from welcome 2 arguments: ${args.searchKey ?? ""} ${args.name ?? ""} ${args.data?.match ?? ""}`.trim();
+                    },
+                },
+            },
+        }),
+    });
+    app.all(`/graphql`, (0, express_2.createHandler)({ schema }));
     // Not found route
-    app.use("{/*dummy}", (req, res) => {
+    app.use((req, res) => {
         throw new error_response_1.NotFoundException("Handler not found!");
     });
     // Global Errors Handling

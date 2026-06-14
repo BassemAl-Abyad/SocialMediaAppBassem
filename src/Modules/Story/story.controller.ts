@@ -23,7 +23,14 @@ router.get(
 );
 
 router.get(
-  "/profile/:userId?",
+  "/profile",
+  authentication({ tokenType: TokenTypeEnum.ACCESS }),
+  validation(storyParamsSchema),
+  storyService.getUserStories,
+);
+
+router.get(
+  "/profile/:userId",
   authentication({ tokenType: TokenTypeEnum.ACCESS }),
   validation(storyParamsSchema),
   storyService.getUserStories,

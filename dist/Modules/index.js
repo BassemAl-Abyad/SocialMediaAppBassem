@@ -18,3 +18,5 @@ __exportStar(require("./Auth/index"), exports);
 __exportStar(require("./Comment/index"), exports);
 __exportStar(require("./Post/index"), exports);
 __exportStar(require("./User/index"), exports);
+__exportStar(require("./Story/index"), exports);
+__exportStar(require("./Notification/index"), exports);

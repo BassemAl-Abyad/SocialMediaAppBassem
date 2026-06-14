@@ -1,0 +1,20 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const authentication_middleware_1 = require("../../Middleware/authentication.middleware");
+const auth_enum_1 = require("../../Utils/enums/auth.enum");
+const story_service_1 = __importDefault(require("./story.service"));
+const validation_middleware_1 = require("../../Middleware/validation.middleware");
+const story_validation_1 = require("./story.validation");
+const router = (0, express_1.Router)();
+router.post("/create", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, authentication_middleware_1.authorization)({ accessRoles: [auth_enum_1.RoleEnum.USER, auth_enum_1.RoleEnum.ADMIN] }), (0, validation_middleware_1.validation)(story_validation_1.createStorySchema), story_service_1.default.createStory);
+router.get("/feed", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, validation_middleware_1.validation)(story_validation_1.feedStorySchema), story_service_1.default.getFeed);
+router.get("/profile", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, validation_middleware_1.validation)(story_validation_1.storyParamsSchema), story_service_1.default.getUserStories);
+router.get("/profile/:userId", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, validation_middleware_1.validation)(story_validation_1.storyParamsSchema), story_service_1.default.getUserStories);
+router.delete("/:storyId", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, authentication_middleware_1.authorization)({ accessRoles: [auth_enum_1.RoleEnum.USER, auth_enum_1.RoleEnum.ADMIN] }), story_service_1.default.deleteStory);
+router.patch("/:storyId/restore", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, authentication_middleware_1.authorization)({ accessRoles: [auth_enum_1.RoleEnum.USER, auth_enum_1.RoleEnum.ADMIN] }), story_service_1.default.restoreStory);
+router.delete("/:storyId/hard", (0, authentication_middleware_1.authentication)({ tokenType: auth_enum_1.TokenTypeEnum.ACCESS }), (0, authentication_middleware_1.authorization)({ accessRoles: [auth_enum_1.RoleEnum.ADMIN] }), story_service_1.default.hardDeleteStory);
+exports.default = router;

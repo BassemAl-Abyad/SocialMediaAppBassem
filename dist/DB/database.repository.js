@@ -28,8 +28,18 @@ class DatabaseRepository {
         if (options?.skip)
             doc.skip(options.skip);
         if (options?.limit)
-            doc.skip(options.limit);
+            doc.limit(options.limit);
         return await doc.exec();
+    }
+    async findOneAndUpdate({ filter, update, options = { new: true }, }) {
+        if (Array.isArray(update)) {
+            update.push({ $set: { __v: { $add: ["$__v", 1] } } });
+            return await this.model.findOneAndUpdate(filter, update, { ...options });
+        }
+        return await this.model.findOneAndUpdate(filter, update, {
+            ...options,
+            $inc: { __v: 1 },
+        });
     }
     async create({ data, options, }) {
         return await this.model.create(data, options);

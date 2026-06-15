@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import { Express } from "express";
 import helmet from "helmet";
-import { corsMiddleware } from "./Utils/cors/cors.utils";
+import { corsMiddleware, corsOptions } from "./Utils/cors/cors.utils";
 import { generalLimiter } from "./Utils/rateLimiter/rateLimiter";
 import {
   AuthRouter,
@@ -23,6 +23,7 @@ import { authentication } from "./Middleware/authentication.middleware";
 import { createHandler } from "graphql-http/lib/use/express";
 import { schema } from "./Modules/graphql/schema.gql";
 import { TokenTypeEnum } from "./Utils/enums/auth.enum";
+import { Server } from "socket.io";
 
 export const bootstrap = async () => {
   const app: Express = express();
@@ -61,10 +62,10 @@ export const bootstrap = async () => {
     "/graphql",
     authentication({ tokenType: TokenTypeEnum.ACCESS }),
     createHandler({
-        schema: schema,
-        context: (req) => ({ user: req.raw.user, decoded: req.raw.decoded }),
+      schema: schema,
+      context: (req) => ({ user: req.raw.user, decoded: req.raw.decoded }),
     }),
-);
+  );
 
   // Not found route
   app.use((req: Request, res: Response) => {
@@ -75,7 +76,23 @@ export const bootstrap = async () => {
   app.use(globalErrorHandler);
 
   // App listen
-  app.listen(PORT, (): void => {
+  const httpServer = app.listen(PORT, (): void => {
     console.log(`Server is running on http://localhost:${PORT}`);
+  });
+
+  // Socket.io setup
+  const io = new Server(httpServer, { cors: {
+    origin: "*",
+  } });
+  io.on("connection", (socket) => {
+    console.log("User successfully connected: " + socket.id);
+
+    socket.on("Hi", (data) => {
+      console.log("Received 'Hi' event with data:", data);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("User disconnected: " + socket.id);
+    });
   });
 };

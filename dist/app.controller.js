@@ -18,6 +18,7 @@ const authentication_middleware_1 = require("./Middleware/authentication.middlew
 const express_2 = require("graphql-http/lib/use/express");
 const schema_gql_1 = require("./Modules/graphql/schema.gql");
 const auth_enum_1 = require("./Utils/enums/auth.enum");
+const socket_io_1 = require("socket.io");
 const bootstrap = async () => {
     const app = (0, express_1.default)();
     // Apply security middleware
@@ -56,8 +57,21 @@ const bootstrap = async () => {
     // Global Errors Handling
     app.use(error_response_1.globalErrorHandler);
     // App listen
-    app.listen(config_service_1.PORT, () => {
+    const httpServer = app.listen(config_service_1.PORT, () => {
         console.log(`Server is running on http://localhost:${config_service_1.PORT}`);
+    });
+    // Socket.io setup
+    const io = new socket_io_1.Server(httpServer, { cors: {
+            origin: "*",
+        } });
+    io.on("connection", (socket) => {
+        console.log("User successfully connected: " + socket.id);
+        socket.on("Hi", (data) => {
+            console.log("Received 'Hi' event with data:", data);
+        });
+        socket.on("disconnect", () => {
+            console.log("User disconnected: " + socket.id);
+        });
     });
 };
 exports.bootstrap = bootstrap;

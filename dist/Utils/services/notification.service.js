@@ -5,13 +5,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.notification = exports.NotificationService = void 0;
 const notification_config_1 = __importDefault(require("./notification.config"));
+const messaging_1 = require("firebase-admin/messaging");
 class NotificationService {
     async sendNotification({ token, data, }) {
         const message = {
             token,
             data,
         };
-        return await notification_config_1.default.messaging().send(message);
+        return await (0, messaging_1.getMessaging)(notification_config_1.default).send(message);
     }
     async sendNotifications({ tokens, data, }) {
         return await Promise.allSettled(tokens.map((token) => {

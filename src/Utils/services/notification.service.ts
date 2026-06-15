@@ -1,4 +1,5 @@
 import firebaseApp from "./notification.config";
+import { getMessaging } from "firebase-admin/messaging";
 
 export class NotificationService {
   async sendNotification({
@@ -12,7 +13,7 @@ export class NotificationService {
       token,
       data,
     };
-    return await firebaseApp.messaging().send(message);
+    return await getMessaging(firebaseApp).send(message);
   }
 
   async sendNotifications({

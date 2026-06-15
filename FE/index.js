@@ -8,6 +8,6 @@ client.on("disconnect", (error) => {
     console.log("Server disconnected from client: " + client.id + (error ? " with error: " + error : ""));
 });
 
-client.on("Hello", (data) => {
-    console.log("Received message from server: " + data.message);
+client.emit("sayHi", "Hello from Client!", (res) => {
+    console.log(res);
 });

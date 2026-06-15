@@ -64,14 +64,26 @@ const bootstrap = async () => {
     const io = new socket_io_1.Server(httpServer, { cors: {
             origin: "*",
         } });
+    // http://localhost:3000/
     io.on("connection", (socket) => {
-        console.log("User successfully connected: " + socket.id);
+        console.log("(Main connection) User successfully connected: " + socket.id);
         socket.on("Hi", (data) => {
-            console.log("Received 'Hi' event with data:", data);
+            console.log("(Main connection) Received 'Hi' event with data:", data);
+        });
+        // socket.emit("product", { id: 1, name: "Sample Product", price: 9.99 });
+        socket.on("sayHi", (data, callback) => {
+            console.log("(Main connection) Received 'sayHi' event with data:", data);
+            if (callback) {
+                callback({ message: "Hello from the server!" });
+            }
         });
         socket.on("disconnect", () => {
-            console.log("User disconnected: " + socket.id);
+            console.log("(Main connection) User disconnected: " + socket.id);
         });
+    });
+    // http://localhost:3000/admin/
+    io.of("/admin").on("connection", (socket) => {
+        console.log("(Admin connection) Admin successfully connected: " + socket.id);
     });
 };
 exports.bootstrap = bootstrap;
